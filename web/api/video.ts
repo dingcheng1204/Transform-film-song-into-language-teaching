@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { checkVideo } from './_lib/video.js'
+import { fetchVideoCheck } from './_lib/video.js'
 
 const ID = /^[A-Za-z0-9_-]{11}$/
 
@@ -14,15 +14,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const key = process.env.YOUTUBE_API_KEY
   if (!key) return res.status(503).json({ error: 'no_api_key' })
 
-  const url = new URL('https://www.googleapis.com/youtube/v3/videos')
-  url.searchParams.set('part', 'snippet,contentDetails')
-  url.searchParams.set('id', id)
-  url.searchParams.set('key', key)
-
-  const r = await fetch(url)
-  if (!r.ok) return res.status(502).json({ error: 'youtube_api', status: r.status })
-  const data = (await r.json()) as { items?: unknown[] }
-
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
-  return res.status(200).json(checkVideo(id, data.items?.[0] as Parameters<typeof checkVideo>[1]))
+  try {
+    const check = await fetchVideoCheck(id, key)
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
+    return res.status(200).json(check)
+  } catch {
+    return res.status(502).json({ error: 'youtube_api' })
+  }
 }

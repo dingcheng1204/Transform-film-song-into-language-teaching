@@ -14,7 +14,8 @@ Never hand-edit the generated files. CI fails if they are stale.
 
 ## WhisperX
 - Input: `vocals16k.wav` (from audio-ingest). Pass `language` explicitly (`en` / `ja`) — auto-detect is unreliable on singing.
-- Model: `large-v3` on GPU, `medium` on CPU. `compute_type="int8"` on CPU.
+- Model: `large-v3` on GPU, `medium` on CPU (the dev machine has no NVIDIA GPU — CPU is the default). `compute_type="int8"`, `vad_method="silero"` (no Hugging Face token needed).
+- Code: `worker/src/song_worker/align.py` (WhisperX), `segment.py` (pure rules below), `ja_tokens.py` (merge per-char ja output with fugashi).
 - Run `whisperx.align` to get word timings. Words with no alignment (missing `start`) inherit from neighbours by linear interpolation; never drop them.
 - Japanese: WhisperX returns characters, not words — merge into words with a tokenizer (fugashi/MeCab via `pykakasi` or `sudachipy`) before segmentation.
 - Korean: WhisperX words are space-delimited eojeol (어절) — keep them as words, do not split particles off.
@@ -30,5 +31,8 @@ Never hand-edit the generated files. CI fails if they are stale.
 - `segment.start` = first word start − 0.15 s (clamp ≥ 0); `segment.end` = last word end + 0.25 s, but never past the next segment's start.
 - Segment `id`s are 0-based and contiguous.
 
+## Storage
+The finished Timeline is upserted as JSON into `song_teaching.timelines` (key: youtube_id + source_lang).
+
 ## Testing
-Pure functions (`segment_lines`) get unit tests with synthetic word lists — no models in CI.
+Pure functions (`to_lines`, `to_segments`, `fill_missing_times`, `merge_chars`) get unit tests with synthetic word lists — no models in CI.

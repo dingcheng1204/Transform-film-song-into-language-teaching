@@ -1,7 +1,8 @@
+import type { Lang } from './samples'
 import { MAX_DURATION_SEC } from './youtube'
 
 export type VideoCheckResult =
-  | { status: 'ok'; title?: string; durationSec?: number }
+  | { status: 'ok'; title?: string; durationSec?: number; langHint?: Lang | null }
   | { status: 'rejected'; message: string }
   /** Server can't check (no API key / network) — caller falls back to the player's duration. */
   | { status: 'unknown' }
@@ -27,8 +28,10 @@ export async function checkVideo(id: string): Promise<VideoCheckResult> {
       reason?: string
       title?: string
       durationSec?: number
+      langHint?: Lang | null
     }
-    if (d.ok) return { status: 'ok', title: d.title, durationSec: d.durationSec }
+    if (d.ok)
+      return { status: 'ok', title: d.title, durationSec: d.durationSec, langHint: d.langHint ?? null }
     let message = REASON[d.reason ?? ''] ?? '這部影片不能使用。'
     if (d.reason === 'too_long' && d.durationSec) message += `（目前 ${formatDuration(d.durationSec)}）`
     return { status: 'rejected', message }

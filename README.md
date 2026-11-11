@@ -21,12 +21,16 @@ supabase/    migrations (only touch the song_teaching schema)
 ## Data flow
 
 ```
-web ──POST /api/jobs──▶ Supabase song_teaching.jobs (pending)
-                              ▲             │ poll
-                              │ results     ▼
-                              └────────── worker (local / later GPU host)
-web ◀── timeline JSON + TTS mp3 from Supabase
+web /lesson/:id ──POST /api/jobs──▶ song_teaching.enqueue_job()  → jobs (pending)
+                                                                    │ claim_job() every 5 s
+                                                worker (your machine, CPU) ◀┘
+                                                yt-dlp → Demucs → WhisperX → segments
+web ◀──GET /api/lesson (polls 3 s)── timelines (jsonb, one per video+language) ◀┘
 ```
+
+Tables (`supabase/migrations/`): `song_teaching.jobs` (queue + progress) and `song_teaching.timelines`
+(the Timeline JSON, validated against the schema before it is written). The web uses the publishable
+key through Vercel Functions; only the worker holds the service-role key. See `worker/README.md` to run it.
 
 ## Schema → types
 
@@ -53,6 +57,7 @@ Never edit generated files by hand.
 
 Shares the `flight-price-notifier` project (free plan has 2 active projects).
 Everything lives in the `song_teaching` schema and the `song-tts` storage bucket; RLS on every table.
+After the first migration, `song_teaching` must be listed under Dashboard → Project Settings → Data API → Exposed schemas.
 The service-role key exists only in `worker/.env`, never in `web/` or Vercel.
 
 ## Copyright note

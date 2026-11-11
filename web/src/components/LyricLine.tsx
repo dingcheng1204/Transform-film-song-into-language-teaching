@@ -11,7 +11,7 @@ interface Props {
 
 // One lyric line: readings above each word (ruby), romanization under ja/ko, zh-TW translation.
 export default function LyricLine({ line, lang, activeWord = -1, size = 'lg' }: Props) {
-  const showRomanization = lang !== 'en'
+  const showRomanization = lang !== 'en' && line.words.some((w) => w.romanization)
   const textSize = size === 'lg' ? 'text-3xl sm:text-4xl' : 'text-xl'
   return (
     <div className="space-y-1">
@@ -37,9 +37,11 @@ export default function LyricLine({ line, lang, activeWord = -1, size = 'lg' }: 
           {line.words.map((w) => w.romanization ?? '').join(' ')}
         </p>
       )}
-      <p className={size === 'lg' ? 'text-lg text-ink-soft' : 'text-base text-ink-soft'} lang="zh-Hant">
-        {line.translation}
-      </p>
+      {line.translation && (
+        <p className={size === 'lg' ? 'text-lg text-ink-soft' : 'text-base text-ink-soft'} lang="zh-Hant">
+          {line.translation}
+        </p>
+      )}
     </div>
   )
 }

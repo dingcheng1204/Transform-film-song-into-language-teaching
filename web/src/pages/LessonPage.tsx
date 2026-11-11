@@ -1,54 +1,79 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
-import { playerErrorMessage, useYouTubePlayer } from '../lib/useYouTubePlayer'
-import { checkVideo, formatDuration, type VideoCheckResult } from '../lib/videoCheck'
-import { MAX_DURATION_SEC } from '../lib/youtube'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useParams, useSearchParams } from 'react-router'
+import LessonPlayer from '../components/LessonPlayer'
+import ProcessingStatus from '../components/ProcessingStatus'
+import StartProcessing from '../components/StartProcessing'
+import { fetchLesson, type JobRow, type Lesson } from '../lib/lessonApi'
+import { LANG_LABEL, type Lang } from '../lib/samples'
 
-// P1: any video → embed + duration check. P2 adds processing and loads its real timeline.
+const isActive = (job: JobRow | null) => job?.status === 'pending' || job?.status === 'processing'
+
 export default function LessonPage() {
   const { youtubeId = '' } = useParams()
-  const { containerRef, playerRef, ready, error } = useYouTubePlayer(youtubeId)
-  const [server, setServer] = useState<VideoCheckResult | null>(null)
-  const [playerDuration, setPlayerDuration] = useState<number | null>(null)
+  const [params, setParams] = useSearchParams()
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    let live = true
-    checkVideo(youtubeId).then((r) => live && setServer(r))
-    return () => {
-      live = false
-    }
-  }, [youtubeId])
+  const lesson = useQuery({
+    queryKey: ['lesson', youtubeId],
+    queryFn: () => fetchLesson(youtubeId),
+    refetchInterval: (q) => (isActive(q.state.data?.job ?? null) ? 3000 : false),
+  })
 
-  // Fallback when the server can't check: the player knows the duration once ready.
-  useEffect(() => {
-    if (ready) setPlayerDuration(playerRef.current?.getDuration() ?? null)
-  }, [ready, playerRef])
+  if (lesson.isPending) return <p className="text-muted">載入中…</p>
 
-  let verdict: { ok: boolean; text: string } | null = null
-  if (server?.status === 'rejected') verdict = { ok: false, text: server.message }
-  else if (server?.status === 'ok')
-    verdict = { ok: true, text: `長度 ${formatDuration(server.durationSec ?? 0)}，可以處理。` }
-  else if (server?.status === 'unknown' && playerDuration)
-    verdict =
-      playerDuration > MAX_DURATION_SEC
-        ? { ok: false, text: `影片長度 ${formatDuration(playerDuration)}，超過 6 分鐘，請換一首比較短的歌。` }
-        : { ok: true, text: `長度 ${formatDuration(playerDuration)}，可以處理。` }
+  const data: Lesson = lesson.data ?? { timelines: {}, job: null }
+  const job = data.job
+
+  if (isActive(job)) return <ProcessingStatus job={job!} />
+
+  const langs = Object.keys(data.timelines) as Lang[]
+  if (langs.length) {
+    const wanted = params.get('lang') as Lang | null
+    const lang = wanted && langs.includes(wanted) ? wanted : langs[0]
+    const timeline = data.timelines[lang]!
+    const hasLessons = timeline.segments.some(
+      (s) => s.lesson.pronunciationNotes.length + s.lesson.connectedSpeech.length + s.lesson.singingTips.length,
+    )
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h1 className="text-2xl font-bold">{timeline.song.title}</h1>
+          {langs.length > 1 && (
+            <div className="flex gap-2" role="tablist">
+              {langs.map((l) => (
+                <button
+                  key={l}
+                  role="tab"
+                  aria-selected={l === lang}
+                  onClick={() => setParams({ lang: l })}
+                  className={`rounded-md px-3 py-1 text-sm ${l === lang ? 'bg-ink text-white' : 'border border-rule'}`}
+                >
+                  {LANG_LABEL[l]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {!hasLessons && (
+          <p className="text-sm text-muted">
+            目前有逐字時間和自動暫停；翻譯、發音標註和教學說明會在下一個版本加入。
+          </p>
+        )}
+        <LessonPlayer key={lang} timeline={timeline} />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="aspect-video overflow-hidden rounded-lg bg-ink/90" ref={containerRef} />
-      {error !== null && <p className="text-alert">{playerErrorMessage(error)}</p>}
-      {server?.status === 'ok' && server.title && <h1 className="text-xl font-bold">{server.title}</h1>}
-      {verdict && <p className={verdict.ok ? 'text-ink' : 'text-alert'}>{verdict.text}</p>}
-      {verdict?.ok && (
-        <p className="text-ink-soft">
-          自動產生逐句教學會在下一個版本加入。現在可以先看
-          <Link to="/demo/ja" className="mx-1 underline">日文</Link>、
-          <Link to="/demo/en" className="mx-1 underline">英文</Link>、
-          <Link to="/demo/ko" className="mx-1 underline">韓文</Link>
-          示範，試試暫停教學的流程。
-        </p>
+    <div className="space-y-4">
+      {lesson.isError && (
+        <p className="text-sm text-alert">讀不到處理紀錄，伺服器的資料庫連線可能還沒設定好。</p>
       )}
+      <StartProcessing
+        youtubeId={youtubeId}
+        lastJob={job}
+        onQueued={(j) => queryClient.setQueryData<Lesson>(['lesson', youtubeId], { ...data, job: j })}
+      />
     </div>
   )
 }

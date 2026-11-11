@@ -29,6 +29,9 @@ export default function LessonCard({
   const { lesson } = segment
   return (
     <section aria-label="這段的教學" className="rounded-lg border border-rule bg-sheet p-5 sm:p-6">
+      {SECTIONS.every(({ key }) => lesson[key].length === 0) && (
+        <p className="text-sm text-muted">這段的發音說明會在下一個版本加入。先重播幾次，跟著唱看看。</p>
+      )}
       <div className="grid gap-5 sm:grid-cols-3">
         {SECTIONS.map(({ key, title }) =>
           lesson[key].length ? (

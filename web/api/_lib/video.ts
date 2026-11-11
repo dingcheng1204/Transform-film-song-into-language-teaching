@@ -41,6 +41,18 @@ interface YtItem {
   contentDetails?: { duration?: string }
 }
 
+/** Fetch one video from the YouTube Data API (1 quota unit) and decide. */
+export async function fetchVideoCheck(id: string, key: string): Promise<VideoCheck> {
+  const url = new URL('https://www.googleapis.com/youtube/v3/videos')
+  url.searchParams.set('part', 'snippet,contentDetails')
+  url.searchParams.set('id', id)
+  url.searchParams.set('key', key)
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`youtube_api ${r.status}`)
+  const data = (await r.json()) as { items?: YtItem[] }
+  return checkVideo(id, data.items?.[0])
+}
+
 /** Turn a YouTube Data API videos.list item into an accept/reject decision. */
 export function checkVideo(id: string, item: YtItem | undefined): VideoCheck {
   if (!item) return { ok: false, id, reason: 'not_found' }

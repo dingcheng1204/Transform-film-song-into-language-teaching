@@ -1,15 +1,26 @@
 [project]
 name = "song-worker"
-version = "0.0.1"
+version = "0.2.0"
 description = "Pipeline: YouTube audio -> vocals -> word timestamps -> lessons -> TTS -> Supabase"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "pydantic>=2.8",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
-# Added for real in later phases; listed here so the plan is visible.
-# p2 = ["yt-dlp", "demucs", "whisperx", "supabase"]
+# Heavy audio/ML stack — install with: uv sync --extra pipeline
+# CPU-only torch is pulled from the PyTorch CPU index (see [tool.uv.sources]).
+pipeline = [
+    "yt-dlp>=2026.10.26",
+    "demucs>=4.1.0",
+    "whisperx>=3.8.6",
+    "torch~=2.8.0",
+    "torchaudio~=2.8.0",
+    "torchvision~=0.23.0",
+    "fugashi>=1.5",
+    "unidic-lite>=1.0.8",
+]
 # p3 = ["anthropic", "pykakasi", "phonemizer", "g2pk", "korean-romanizer"]
 # p5 = ["librosa"]
 
@@ -23,6 +34,16 @@ dev = [
     "ruff>=0.6",
     "datamodel-code-generator>=0.26",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["hatchling"]
