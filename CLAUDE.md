@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-YouTube song (≤ 6 min) → line-by-line pronunciation/singing lesson with zh-TW subtitles. See README.md for layout and phases.
+YouTube song (≤ 6 min, Japanese / English / Korean only) → line-by-line pronunciation/singing lesson with zh-TW subtitles. See README.md for layout and phases.
 
 ## Hard rules
 - `schema/timeline.schema.json` is the contract. After changing it run `uv run gen-models` (in worker/) and `pnpm gen:types` (in web/). Never edit `worker/src/song_worker/timeline.py` or `web/src/types/timeline.ts` by hand.

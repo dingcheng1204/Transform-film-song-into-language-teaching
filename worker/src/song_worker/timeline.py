@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class SourceLang(Enum):
     en = 'en'
     ja = 'ja'
+    ko = 'ko'
 
 
 class TargetLang(Enum):
@@ -41,9 +42,13 @@ class Word(BaseModel):
     start: float = Field(..., ge=0.0)
     end: float = Field(..., gt=0.0)
     reading: str | None = Field(
-        None, description='ja: hiragana reading (furigana). en: IPA.'
+        None,
+        description='ja: hiragana reading (furigana). ko: Hangul as actually pronounced after sound changes (e.g. 같이 → 가치). en: IPA.',
     )
-    romaji: str | None = Field(None, description='ja only: Hepburn romanization.')
+    romanization: str | None = Field(
+        None,
+        description='ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted.',
+    )
 
 
 class Lesson(BaseModel):

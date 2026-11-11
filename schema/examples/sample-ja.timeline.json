@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0",
+  "song": {
+    "youtubeId": "M7lc1UVf-VE",
+    "title": "Sample JA (original lines, YouTube IFrame API demo video)",
+    "artist": "placeholder",
+    "durationSec": 60,
+    "sourceLang": "ja",
+    "targetLang": "zh-TW"
+  },
+  "segments": [
+    {
+      "id": 0,
+      "start": 2.0,
+      "end": 8.0,
+      "lines": [
+        {
+          "text": "夜空に光る星",
+          "translation": "在夜空中閃耀的星星",
+          "start": 2.0,
+          "end": 4.8,
+          "words": [
+            { "text": "夜空", "start": 2.0, "end": 2.8, "reading": "よぞら", "romanization": "yozora" },
+            { "text": "に", "start": 2.8, "end": 3.0, "reading": "に", "romanization": "ni" },
+            { "text": "光る", "start": 3.0, "end": 3.8, "reading": "ひかる", "romanization": "hikaru" },
+            { "text": "星", "start": 3.8, "end": 4.8, "reading": "ほし", "romanization": "hoshi" }
+          ]
+        },
+        {
+          "text": "君の名前を呼ぶ",
+          "translation": "呼喚你的名字",
+          "start": 5.0,
+          "end": 8.0,
+          "words": [
+            { "text": "君", "start": 5.0, "end": 5.5, "reading": "きみ", "romanization": "kimi" },
+            { "text": "の", "start": 5.5, "end": 5.7, "reading": "の", "romanization": "no" },
+            { "text": "名前", "start": 5.7, "end": 6.5, "reading": "なまえ", "romanization": "namae" },
+            { "text": "を", "start": 6.5, "end": 6.8, "reading": "を", "romanization": "o" },
+            { "text": "呼ぶ", "start": 6.8, "end": 8.0, "reading": "よぶ", "romanization": "yobu" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": [
+          "星 ほし 的 し 是 shi，不是 si。",
+          "を 當助詞時念 o，跟 お 一樣。"
+        ],
+        "connectedSpeech": ["光る ひかる 的 ひ 在快唱時 i 常會無聲化，聽起來像 h'karu。"],
+        "singingTips": [
+          "星 和 呼ぶ 在句尾拉長，拉的是最後的母音 i 和 u。",
+          "兩句之間在 星 後面換氣。"
+        ],
+        "ttsRate": 0.75
+      }
+    },
+    {
+      "id": 1,
+      "start": 8.5,
+      "end": 11.5,
+      "lines": [
+        {
+          "text": "明日へ行こう",
+          "translation": "一起走向明天吧",
+          "start": 8.5,
+          "end": 11.5,
+          "words": [
+            { "text": "明日", "start": 8.5, "end": 9.4, "reading": "あした", "romanization": "ashita" },
+            { "text": "へ", "start": 9.4, "end": 9.7, "reading": "へ", "romanization": "e" },
+            { "text": "行こう", "start": 9.7, "end": 11.5, "reading": "いこう", "romanization": "ikou" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": ["へ 當助詞時念 e，不是 he。"],
+        "connectedSpeech": ["行こう いこう 結尾的 こう 是長音 kō，要念滿兩拍。"],
+        "singingTips": ["行こう 的長音常被拉成好幾個音，保持 o 的嘴形不要變成 u。"],
+        "ttsRate": 0.75
+      }
+    }
+  ]
+}

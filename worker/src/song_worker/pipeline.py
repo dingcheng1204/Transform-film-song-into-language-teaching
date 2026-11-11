@@ -14,7 +14,7 @@ MAX_DURATION_SEC = 360
 class Job:
     id: str
     youtube_id: str
-    source_lang: str  # "en" | "ja"
+    source_lang: str  # "ja" | "en" | "ko"
     workdir: Path
 
 
@@ -39,7 +39,10 @@ def segment_lines(words: list[dict]) -> list[dict]:
 
 
 def annotate(segments: list[dict], lang: str) -> list[dict]:
-    """P3 — translation (zh-TW), furigana/romaji (ja) or IPA (en), lessons via Claude."""
+    """P3 — zh-TW translation, readings, and lessons via Claude.
+
+    Readings: furigana/romaji (ja), pronounced Hangul + RR (ko), IPA (en).
+    """
     raise NotImplementedError("p3")
 
 

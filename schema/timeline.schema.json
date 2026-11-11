@@ -30,7 +30,7 @@
           "maximum": 360,
           "description": "Input limit: 6 minutes."
         },
-        "sourceLang": { "enum": ["en", "ja"], "description": "Language being sung." },
+        "sourceLang": { "enum": ["en", "ja", "ko"], "description": "Language being sung." },
         "targetLang": { "enum": ["zh-TW"], "description": "Translation / explanation language." }
       }
     },
@@ -77,9 +77,12 @@
         "end": { "type": "number", "exclusiveMinimum": 0 },
         "reading": {
           "type": "string",
-          "description": "ja: hiragana reading (furigana). en: IPA."
+          "description": "ja: hiragana reading (furigana). ko: Hangul as actually pronounced after sound changes (e.g. 같이 → 가치). en: IPA."
         },
-        "romaji": { "type": "string", "description": "ja only: Hepburn romanization." }
+        "romanization": {
+          "type": "string",
+          "description": "ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted."
+        }
       }
     },
     "Lesson": {

@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import './index.css'
 import App from './App.tsx'
 import HomePage from './pages/HomePage.tsx'
+import DemoPage from './pages/DemoPage.tsx'
 import LessonPage from './pages/LessonPage.tsx'
 
 const router = createBrowserRouter([
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'lesson/:youtubeId', element: <LessonPage /> },
+      { path: 'demo/:lang', element: <DemoPage /> },
     ],
   },
 ])

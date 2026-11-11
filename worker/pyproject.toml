@@ -10,7 +10,7 @@ dependencies = [
 [project.optional-dependencies]
 # Added for real in later phases; listed here so the plan is visible.
 # p2 = ["yt-dlp", "demucs", "whisperx", "supabase"]
-# p3 = ["anthropic", "pykakasi", "phonemizer"]
+# p3 = ["anthropic", "pykakasi", "phonemizer", "g2pk", "korean-romanizer"]
 # p5 = ["librosa"]
 
 [project.scripts]

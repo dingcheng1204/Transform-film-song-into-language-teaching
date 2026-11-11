@@ -1,7 +1,9 @@
 # Transform-film-song-into-language-teaching
 
 Turn a YouTube song (≤ 6 min) into a line-by-line pronunciation & singing lesson:
-play 1–2 lines → auto-pause → show reading, bilingual subtitles (中英 / 中日), and tips → continue.
+play 1–2 lines → auto-pause → show reading, bilingual subtitles (中英 / 中日 / 中韓), and tips → continue.
+
+Supported song languages: **Japanese, English, Korean** (`sourceLang`: `ja` / `en` / `ko`).
 
 The original video is **embedded** with the YouTube IFrame Player API — it is never re-rendered or re-hosted.
 
@@ -42,7 +44,7 @@ Never edit generated files by hand.
 | `p0-scaffold` | Monorepo, schema, project skills, CI, Vercel shell |
 | `p1-player` | URL input + ≤6 min check, embedded player, pause/lesson card from sample timeline |
 | `p2-align` | Worker: audio → vocals → word timestamps → Supabase |
-| `p3-lessons` | Translation, furigana/romaji/IPA, Claude-generated lessons |
+| `p3-lessons` | Translation, furigana/romaji (ja), pronounced Hangul + RR (ko), IPA (en), Claude-generated lessons |
 | `p4-tts` | Slow TTS readings in lesson cards |
 | `p5-pitch` | Pitch contour for singing tips |
 | `p6-cloud` | (optional) Worker on GPU host, mp4 export |

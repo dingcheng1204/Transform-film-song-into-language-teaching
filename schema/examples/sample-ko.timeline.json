@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "song": {
+    "youtubeId": "M7lc1UVf-VE",
+    "title": "Sample KO (original lines, YouTube IFrame API demo video)",
+    "artist": "placeholder",
+    "durationSec": 60,
+    "sourceLang": "ko",
+    "targetLang": "zh-TW"
+  },
+  "segments": [
+    {
+      "id": 0,
+      "start": 2.0,
+      "end": 7.5,
+      "lines": [
+        {
+          "text": "같이 걸어갈까",
+          "translation": "要一起走下去嗎",
+          "start": 2.0,
+          "end": 4.6,
+          "words": [
+            { "text": "같이", "start": 2.0, "end": 2.8, "reading": "가치", "romanization": "gachi" },
+            { "text": "걸어갈까", "start": 2.8, "end": 4.6, "reading": "거러갈까", "romanization": "georeogalkka" }
+          ]
+        },
+        {
+          "text": "별빛 아래서",
+          "translation": "在星光下",
+          "start": 4.8,
+          "end": 7.5,
+          "words": [
+            { "text": "별빛", "start": 4.8, "end": 5.8, "reading": "별삗", "romanization": "byeolppit" },
+            { "text": "아래서", "start": 5.8, "end": 7.5, "reading": "아래서", "romanization": "araeseo" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": [
+          "같이 不念 갇이，ㅌ 遇到 이 會顎化成 ㅊ，念 가치 gachi。",
+          "별빛 的 빛 前面接 ㄹ，要念成緊音 삗，喉嚨用力、不送氣。"
+        ],
+        "connectedSpeech": [
+          "걸어갈까 → 거러갈까：收尾音 ㄹ 移到下一個字的 ㅇ 位置（連音）。",
+          "갈까 的 ㄲ 是緊音，像注音 ㄍ 但更用力、完全不送氣。"
+        ],
+        "singingTips": [
+          "갈까 在句尾拉長，拉的是 까 的母音 a。",
+          "兩句之間在 갈까 後面換氣。"
+        ],
+        "ttsRate": 0.75
+      }
+    },
+    {
+      "id": 1,
+      "start": 8.0,
+      "end": 11.0,
+      "lines": [
+        {
+          "text": "너를 좋아해",
+          "translation": "我喜歡你",
+          "start": 8.0,
+          "end": 11.0,
+          "words": [
+            { "text": "너를", "start": 8.0, "end": 9.0, "reading": "너를", "romanization": "neoreul" },
+            { "text": "좋아해", "start": 9.0, "end": 11.0, "reading": "조아해", "romanization": "joahae" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": ["너 的 ㅓ 嘴巴要張開，介於 ㄛ 和 ㄜ 之間，不是 ㄡ。"],
+        "connectedSpeech": ["좋아해 → 조아해：ㅎ 收尾音遇到母音會脫落不發音。"],
+        "singingTips": ["좋아해 的 해 常拉長，尾音放輕，不要加重。"],
+        "ttsRate": 0.75
+      }
+    }
+  ]
+}

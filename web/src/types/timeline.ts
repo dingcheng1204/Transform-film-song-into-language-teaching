@@ -22,7 +22,7 @@ export interface Song {
   /**
    * Language being sung.
    */
-  sourceLang: 'en' | 'ja'
+  sourceLang: 'en' | 'ja' | 'ko'
   /**
    * Translation / explanation language.
    */
@@ -60,13 +60,13 @@ export interface Word {
   start: number
   end: number
   /**
-   * ja: hiragana reading (furigana). en: IPA.
+   * ja: hiragana reading (furigana). ko: Hangul as actually pronounced after sound changes (e.g. 같이 → 가치). en: IPA.
    */
   reading?: string
   /**
-   * ja only: Hepburn romanization.
+   * ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted.
    */
-  romaji?: string
+  romanization?: string
 }
 export interface Lesson {
   /**

@@ -17,10 +17,12 @@ Never hand-edit the generated files. CI fails if they are stale.
 - Model: `large-v3` on GPU, `medium` on CPU. `compute_type="int8"` on CPU.
 - Run `whisperx.align` to get word timings. Words with no alignment (missing `start`) inherit from neighbours by linear interpolation; never drop them.
 - Japanese: WhisperX returns characters, not words — merge into words with a tokenizer (fugashi/MeCab via `pykakasi` or `sudachipy`) before segmentation.
+- Korean: WhisperX words are space-delimited eojeol (어절) — keep them as words, do not split particles off.
+- Language codes for WhisperX: `ja`, `en`, `ko`. The alignment model for `ko` must be set explicitly if the default is missing.
 
 ## Lines
 - Split on Whisper segment boundaries first, then on gaps ≥ 0.6 s between words.
-- A line longer than 12 s or ~14 English words / ~25 Japanese chars is split at the largest internal gap.
+- A line longer than 12 s or ~14 English words / ~25 Japanese chars / ~8 Korean eojeol is split at the largest internal gap.
 
 ## Segments (the play-then-pause unit)
 - 1–2 lines per segment (schema enforces `maxItems: 2`).
