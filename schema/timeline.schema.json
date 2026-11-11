@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dingcheng1204/Transform-film-song-into-language-teaching/schema/timeline.schema.json",
+  "title": "Timeline",
+  "description": "Single source of truth for a processed song lesson. The worker writes it, the web player reads it. TS types and Pydantic models are generated from this file — never edit them by hand.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "song", "segments"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "song": { "$ref": "#/$defs/Song" },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Segment" }
+    }
+  },
+  "$defs": {
+    "Song": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["youtubeId", "title", "durationSec", "sourceLang", "targetLang"],
+      "properties": {
+        "youtubeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{11}$" },
+        "title": { "type": "string", "minLength": 1 },
+        "artist": { "type": "string" },
+        "durationSec": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 360,
+          "description": "Input limit: 6 minutes."
+        },
+        "sourceLang": { "enum": ["en", "ja"], "description": "Language being sung." },
+        "targetLang": { "enum": ["zh-TW"], "description": "Translation / explanation language." }
+      }
+    },
+    "Segment": {
+      "type": "object",
+      "description": "One teaching unit: play [start, end) then pause and show the lesson. Holds 1–2 lines.",
+      "additionalProperties": false,
+      "required": ["id", "start", "end", "lines", "lesson"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "start": { "type": "number", "minimum": 0 },
+        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/Line" }
+        },
+        "lesson": { "$ref": "#/$defs/Lesson" }
+      }
+    },
+    "Line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "translation", "start", "end", "words"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1, "description": "Original sung text." },
+        "translation": { "type": "string", "description": "zh-TW translation." },
+        "start": { "type": "number", "minimum": 0 },
+        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "words": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Word" }
+        }
+      }
+    },
+    "Word": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "start", "end"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "start": { "type": "number", "minimum": 0 },
+        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "reading": {
+          "type": "string",
+          "description": "ja: hiragana reading (furigana). en: IPA."
+        },
+        "romaji": { "type": "string", "description": "ja only: Hepburn romanization." }
+      }
+    },
+    "Lesson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pronunciationNotes", "connectedSpeech", "singingTips"],
+      "properties": {
+        "pronunciationNotes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "zh-TW notes on hard sounds in this segment."
+        },
+        "connectedSpeech": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Linking, reduction, elision, devoicing, long vowels, etc."
+        },
+        "singingTips": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rhythm, held notes, breath points."
+        },
+        "ttsUrl": {
+          "type": "string",
+          "description": "Path in Supabase Storage bucket song-tts for the slow reading (P4+)."
+        },
+        "ttsRate": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 1.0,
+          "description": "Speaking rate used for the TTS reading."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0",
+  "song": {
+    "youtubeId": "M7lc1UVf-VE",
+    "title": "Sample (YouTube IFrame API demo video)",
+    "artist": "placeholder",
+    "durationSec": 60,
+    "sourceLang": "en",
+    "targetLang": "zh-TW"
+  },
+  "segments": [
+    {
+      "id": 0,
+      "start": 2.0,
+      "end": 7.5,
+      "lines": [
+        {
+          "text": "Walk me out into the light",
+          "translation": "帶我走進光裡",
+          "start": 2.0,
+          "end": 4.6,
+          "words": [
+            { "text": "Walk", "start": 2.0, "end": 2.4, "reading": "wɔːk" },
+            { "text": "me", "start": 2.4, "end": 2.6, "reading": "miː" },
+            { "text": "out", "start": 2.6, "end": 3.0, "reading": "aʊt" },
+            { "text": "into", "start": 3.0, "end": 3.4, "reading": "ˈɪntuː" },
+            { "text": "the", "start": 3.4, "end": 3.6, "reading": "ðə" },
+            { "text": "light", "start": 3.6, "end": 4.6, "reading": "laɪt" }
+          ]
+        },
+        {
+          "text": "Hold on till the night is gone",
+          "translation": "撐到黑夜過去",
+          "start": 4.8,
+          "end": 7.5,
+          "words": [
+            { "text": "Hold", "start": 4.8, "end": 5.2, "reading": "hoʊld" },
+            { "text": "on", "start": 5.2, "end": 5.5, "reading": "ɑːn" },
+            { "text": "till", "start": 5.5, "end": 5.8, "reading": "tɪl" },
+            { "text": "the", "start": 5.8, "end": 5.95, "reading": "ðə" },
+            { "text": "night", "start": 5.95, "end": 6.4, "reading": "naɪt" },
+            { "text": "is", "start": 6.4, "end": 6.6, "reading": "ɪz" },
+            { "text": "gone", "start": 6.6, "end": 7.5, "reading": "ɡɔːn" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": [
+          "Walk 的 l 不發音，唸 /wɔːk/。",
+          "light 結尾的 t 唱的時候常輕到幾乎聽不見。"
+        ],
+        "connectedSpeech": [
+          "out into → 連成 /aʊ-tɪntuː/，t 黏到下一個字。",
+          "Hold on → /hoʊl-dɑːn/，d 往後連。"
+        ],
+        "singingTips": [
+          "light 和 gone 都是長音，母音拉長、子音最後才收。",
+          "兩句之間在 light 後面換氣。"
+        ],
+        "ttsRate": 0.75
+      }
+    },
+    {
+      "id": 1,
+      "start": 8.0,
+      "end": 11.0,
+      "lines": [
+        {
+          "text": "Every step a little song",
+          "translation": "每一步都是一首小歌",
+          "start": 8.0,
+          "end": 11.0,
+          "words": [
+            { "text": "Every", "start": 8.0, "end": 8.6, "reading": "ˈɛvri" },
+            { "text": "step", "start": 8.6, "end": 9.0, "reading": "stɛp" },
+            { "text": "a", "start": 9.0, "end": 9.1, "reading": "ə" },
+            { "text": "little", "start": 9.1, "end": 9.8, "reading": "ˈlɪɾəl" },
+            { "text": "song", "start": 9.8, "end": 11.0, "reading": "sɔːŋ" }
+          ]
+        }
+      ],
+      "lesson": {
+        "pronunciationNotes": ["Every 只有兩個音節：/ˈɛv-ri/。"],
+        "connectedSpeech": [
+          "step a → /stɛ-pə/。",
+          "little 的 tt 美式發成彈舌音 /ɾ/，像很輕的 d。"
+        ],
+        "singingTips": ["song 的 ng 收在鼻腔，不要多加 g 的音。"],
+        "ttsRate": 0.75
+      }
+    }
+  ]
+}
