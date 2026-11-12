@@ -49,11 +49,19 @@ class Word(BaseModel):
         None,
         description='ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted.',
     )
+    meaning: str | None = Field(
+        None,
+        description='Short zh-TW gloss of this word in context (e.g. 夜空 → 夜空, を → （受詞助詞）). Shown when the learner taps the word.',
+    )
 
 
 class Lesson(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
+    )
+    grammarNotes: list[str] | None = Field(
+        None,
+        description='zh-TW notes on grammar and usage in this segment (particles, conjugations, set phrases) — what the learner can reuse outside the song.',
     )
     pronunciationNotes: list[str] = Field(
         ..., description='zh-TW notes on hard sounds in this segment.'

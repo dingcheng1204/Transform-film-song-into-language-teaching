@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { activeWordIndex, currentIndex, tick } from '../lib/segments'
+import { hasVoice, speak, speakSequence, spokenForm, stopSpeaking } from '../lib/speech'
 import { PlayerState, playerErrorMessage, useYouTubePlayer } from '../lib/useYouTubePlayer'
 import type { Timeline } from '../types/timeline'
 import LessonCard from './LessonCard'
 import LyricLine from './LyricLine'
+import WordDetail from './WordDetail'
 
 const POLL_MS = 50
 const AUTO_SECONDS = 5
 
 type Mode = 'watch' | 'lesson' | 'done'
+type WordRef = { line: number; word: number }
 
 // Plays the embedded video, pauses after each 1–2-line segment, shows the lesson card.
 export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
@@ -26,6 +29,36 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const [countdown, setCountdown] = useState<number | null>(null)
   const lastPaused = useRef(-1)
   const prevT = useRef(0)
+
+  // Word study (lesson mode): tap a word, or let it read word by word / slowly.
+  const lang = song.sourceLang
+  const [selected, setSelected] = useState<WordRef | null>(null)
+  const [speakingWord, setSpeakingWord] = useState<WordRef | null>(null)
+  const [speaking, setSpeaking] = useState<'words' | 'slow' | null>(null)
+  const [canSpeak, setCanSpeak] = useState(() => hasVoice(lang))
+  const cancelSpeech = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    // Voices load asynchronously in most browsers.
+    const s = typeof window !== 'undefined' ? window.speechSynthesis : undefined
+    if (!s) return
+    const update = () => setCanSpeak(hasVoice(lang))
+    s.addEventListener?.('voiceschanged', update)
+    const id = window.setTimeout(update, 500)
+    return () => {
+      s.removeEventListener?.('voiceschanged', update)
+      window.clearTimeout(id)
+      stopSpeaking()
+    }
+  }, [lang])
+
+  const stopSpeech = useCallback(() => {
+    cancelSpeech.current?.()
+    cancelSpeech.current = null
+    stopSpeaking()
+    setSpeaking(null)
+    setSpeakingWord(null)
+  }, [])
 
   // Poll currentTime while playing; pause when a segment end is crossed.
   useEffect(() => {
@@ -49,9 +82,11 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   }, [ready, state, segments, playerRef])
 
   const play = useCallback(() => {
+    stopSpeech()
+    setSelected(null)
     setMode('watch')
     playerRef.current?.playVideo()
-  }, [playerRef])
+  }, [playerRef, stopSpeech])
 
   const replay = useCallback(
     (i: number) => {
@@ -67,8 +102,8 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
     [segments, playerRef, play],
   )
 
-  // Auto-continue countdown.
-  const autoActive = mode === 'lesson' && autoMode
+  // Auto-continue countdown (paused while the learner is studying words).
+  const autoActive = mode === 'lesson' && autoMode && !speaking && !selected
   useEffect(() => {
     if (!autoActive) return
     let left = AUTO_SECONDS
@@ -84,6 +119,46 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
 
   const shownIdx = mode === 'lesson' ? lessonIdx : currentIndex(segments, t)
   const shown = segments[shownIdx]
+
+  function onWordClick(line: number, word: number) {
+    stopSpeech()
+    setSelected({ line, word })
+    void speak(spokenForm(shown.lines[line].words[word], lang), lang, 0.9)
+  }
+
+  function speakWords() {
+    stopSpeech()
+    setSelected(null)
+    const refs: (WordRef | null)[] = []
+    const items: { text: string; rate?: number }[] = []
+    shown.lines.forEach((ln, li) => {
+      ln.words.forEach((w, wi) => {
+        refs.push({ line: li, word: wi })
+        items.push({ text: spokenForm(w, lang), rate: 0.85 })
+      })
+      refs.push(null) // then the whole line at a natural pace
+      items.push({ text: ln.text, rate: 0.9 })
+    })
+    setSpeaking('words')
+    cancelSpeech.current = speakSequence(items, lang, (i) => {
+      if (i === -1) {
+        setSpeaking(null)
+        setSpeakingWord(null)
+      } else setSpeakingWord(refs[i])
+    })
+  }
+
+  function speakSlow() {
+    stopSpeech()
+    setSelected(null)
+    setSpeaking('slow')
+    cancelSpeech.current = speakSequence(
+      shown.lines.map((ln) => ({ text: ln.text, rate: 0.7 })),
+      lang,
+      (i) => i === -1 && setSpeaking(null),
+      400,
+    )
+  }
 
   // Keyboard: Space = continue / play-pause, R = replay the shown segment.
   useEffect(() => {
@@ -113,11 +188,28 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             <LyricLine
               key={`${shownIdx}-${i}`}
               line={line}
-              lang={song.sourceLang}
-              activeWord={mode === 'watch' ? activeWordIndex(line.words, t) : -1}
+              lang={lang}
+              activeWord={
+                mode === 'watch'
+                  ? activeWordIndex(line.words, t)
+                  : speakingWord?.line === i
+                    ? speakingWord.word
+                    : -1
+              }
+              selectedWord={selected?.line === i ? selected.word : -1}
+              onWordClick={mode === 'lesson' ? (w) => onWordClick(i, w) : undefined}
             />
           ))}
         </div>
+
+        {mode === 'lesson' && selected && shown.lines[selected.line]?.words[selected.word] && (
+          <WordDetail
+            word={shown.lines[selected.line].words[selected.word]}
+            lang={lang}
+            onSpeak={() => onWordClick(selected.line, selected.word)}
+            onClose={() => setSelected(null)}
+          />
+        )}
 
         {mode === 'lesson' && (
           <LessonCard
@@ -125,6 +217,11 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             isLast={lessonIdx === segments.length - 1}
             autoMode={autoMode}
             countdown={autoActive ? countdown : null}
+            speaking={speaking}
+            canSpeak={canSpeak}
+            onSpeakWords={speakWords}
+            onSpeakSlow={speakSlow}
+            onStopSpeaking={stopSpeech}
             onReplay={() => replay(lessonIdx)}
             onContinue={play}
             onToggleAuto={() => {

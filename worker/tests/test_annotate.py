@@ -64,15 +64,19 @@ def test_lesson_limits_and_payload():
                 "pronunciationNotes": ["a", "b", "c", "d"],
                 "connectedSpeech": [" ", "x"],
                 "singingTips": ["1", "2", "3"],
+                "grammarNotes": ["g1", "g2", "g3"],
+                "wordMeanings": [["一起", "要走嗎"], ["星光", "在下面"]],
             }
         ]
     )
-    lesson = lesson_for_segment(t, 0, llm)
+    lesson, meanings = lesson_for_segment(t, 0, llm)
+    assert lesson.grammarNotes == ["g1", "g2"]
+    assert meanings == [["一起", "要走嗎"], ["星光", "在下面"]]
     assert lesson.pronunciationNotes == ["a", "b", "c"]
     assert lesson.connectedSpeech == ["x"]
     assert lesson.singingTips == ["1", "2"]
     system, payload = llm.calls[0]
-    assert "韓文" in system and "연음" in system
+    assert "韓文" in system and "연음" in system and "은/는" in system
     assert payload["next"] == t.segments[1].lines[0].text
     assert payload["lines"][0]["words"][0]["sec"] == 0.8
 
@@ -83,7 +87,12 @@ def test_annotate_full_flow_tolerates_a_failed_segment():
     llm = FakeLLM(
         [
             {"lines": [{"i": i, "zh": f"z{i}"} for i in range(3)]},
-            {"pronunciationNotes": ["n0"], "connectedSpeech": [], "singingTips": []},
+            {
+                "pronunciationNotes": ["n0"],
+                "connectedSpeech": [],
+                "singingTips": [],
+                "wordMeanings": [["走"] * 6, ["撐"] * 7],
+            },
             LLMError("boom"),
         ]
     )
@@ -92,6 +101,7 @@ def test_annotate_full_flow_tolerates_a_failed_segment():
     assert t.segments[0].lines[0].words[0].reading == "/Walk/"
     assert t.segments[0].lines[0].translation == "z0"
     assert t.segments[0].lesson.pronunciationNotes == ["n0"]
+    assert t.segments[0].lines[1].words[0].meaning == "撐"
     assert t.segments[1].lesson.pronunciationNotes == []  # failed segment stays empty
     assert progress[:3] == ["readings", "translate", "lessons"]
     Timeline.model_validate(t.model_dump())
@@ -135,3 +145,10 @@ def test_missing_backend_leaves_words_unchanged(monkeypatch):
     monkeypatch.setitem(r.ANNOTATORS, "en", broken)
     t = add_readings(bare("en"))
     assert t.segments[0].lines[0].words[0].reading is None
+
+
+def test_mismatched_word_meanings_are_ignored():
+    t = bare("en")
+    llm = FakeLLM([{"pronunciationNotes": ["n"], "wordMeanings": [["only one"]]}])
+    lesson, meanings = lesson_for_segment(t, 0, llm)
+    assert lesson.pronunciationNotes == ["n"] and meanings is None

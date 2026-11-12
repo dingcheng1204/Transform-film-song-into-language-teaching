@@ -15,7 +15,7 @@ log = logging.getLogger("song_worker")
 Report = Callable[[str, int], None]
 
 LANG_NAME = {"ja": "日文", "en": "英文", "ko": "韓文"}
-LIMITS = {"pronunciationNotes": 3, "connectedSpeech": 3, "singingTips": 2}
+LIMITS = {"grammarNotes": 2, "pronunciationNotes": 3, "connectedSpeech": 3, "singingTips": 2}
 
 TRANSLATE_SYSTEM = """你是專業的歌詞翻譯，把歌詞翻成台灣慣用的繁體中文。
 規則：
@@ -24,32 +24,42 @@ TRANSLATE_SYSTEM = """你是專業的歌詞翻譯，把歌詞翻成台灣慣用�
 - 用台灣用語（例如「影片」不是「視頻」）。
 - 只輸出 JSON：{"lines": [{"i": 行號, "zh": "翻譯"}]}，行號從 0 開始，數量必須和輸入相同。"""
 
-LESSON_SYSTEM = """你是給台灣學習者的{lang_name}歌曲發音與唱歌老師，用繁體中文（台灣用語）說明。
-輸入是一個教學段落（1–2 句歌詞）和每個字的讀音、羅馬拼音、演唱秒數，以及前後句當上下文。
+LESSON_SYSTEM = """你是台灣學習者的{lang_name}老師。學習者透過唱歌自然學語言：
+要聽懂、會念、學到能帶走的單字和文法，也要唱得好。全部用繁體中文（台灣用語）說明。
+輸入是一個教學段落（1–2 句歌詞）、每個字的讀音／羅馬拼音／演唱秒數，以及前後句當上下文。
 
-輸出這一段的教學重點，只輸出 JSON：
-{{"pronunciationNotes": [...], "connectedSpeech": [...], "singingTips": [...]}}
+只輸出 JSON：
+{{"wordMeanings": [[...], ...], "grammarNotes": [...], "pronunciationNotes": [...],
+  "connectedSpeech": [...], "singingTips": [...]}}
 
+- wordMeanings：每一句一個陣列，長度和該句 words 完全相同、順序相同；每個元素是該字在這句裡的
+  簡短中文意思（2–8 個字）。助詞、語尾等功能詞用括號說明作用，例如「（受詞助詞）」「（過去式）」。
+- grammarNotes（最多 2 條）：這段裡值得帶走的文法或用法：助詞、動詞變化、句型、慣用說法。
+  說明它的意思和用法，可以在歌以外的句子用到。{grammar_focus}
 - pronunciationNotes（最多 3 條）：這段裡難發的音。{pron_focus}
 - connectedSpeech（最多 3 條）：連音與音變。{connected_focus}
 - singingTips（最多 2 條）：拉長音（演唱秒數特別長的字）、換氣點、一個音上塞好幾個字、節奏。
-- 每條一句話，一定要引用這段裡實際出現的字詞；學習者不一定懂音標，用到音標要附上白話或注音類比。
+- 每條一句話，一定要引用這段裡實際出現的字詞；用到音標要附上白話或注音類比。
 - 不要寫「多練習」之類的空話；沒有值得說的就給空陣列。"""
 
 FOCUS = {
-    "ja": (
-        "例如長音、促音っ、撥音ん、母音 i/u 無聲化、ら行、し/ち/つ 等台灣人容易念錯的音",
-        "例如快唱時母音合併、助詞は/へ/を 的念法、歌詞特殊讀法",
-    ),
-    "en": (
-        "例如 th、r/l、v/f、字尾子音、長短母音",
-        "例如連音 linking、彈舌 flap t、弱讀 reduction（gonna/wanna）、省略 elision",
-    ),
-    "ko": (
-        "例如平音/送氣音/緊音（ㄱ/ㅋ/ㄲ）、ㅓ 和 ㅗ 的差別、收尾音",
-        "例如連音（연음）、緊音化（경음화）、鼻音化（비음화）、顎化（구개음화）、ㅎ 脫落；"
-        "說明時點出是哪一條規則，並對照讀音欄位",
-    ),
+    "ja": {
+        "pron": "例如長音、促音っ、撥音ん、母音 i/u 無聲化、ら行、し/ち/つ 等台灣人容易念錯的音",
+        "connected": "例如快唱時母音合併、助詞は/へ/を 的念法、歌詞特殊讀法",
+        "grammar": "例如助詞（は/が/を/に/で）、動詞て形／た形／ない形、敬體與常體、"
+        "歌詞常見的文語說法",
+    },
+    "en": {
+        "pron": "例如 th、r/l、v/f、字尾子音、長短母音",
+        "connected": "例如連音 linking、彈舌 flap t、弱讀 reduction（gonna/wanna）、省略 elision",
+        "grammar": "例如時態、片語動詞、口語縮寫（I'm/gonna）、歌詞常省略的主詞或助動詞",
+    },
+    "ko": {
+        "pron": "例如平音/送氣音/緊音（ㄱ/ㅋ/ㄲ）、ㅓ 和 ㅗ 的差別、收尾音",
+        "connected": "例如連音（연음）、緊音化（경음화）、鼻音化（비음화）、顎化（구개음화）、"
+        "ㅎ 脫落；說明時點出是哪一條規則，並對照讀音欄位",
+        "grammar": "例如助詞（은/는、이/가、을/를）、語尾（-아/어요、-고 싶다、-ㄹ까）、半語與敬語",
+    },
 }
 
 
@@ -113,11 +123,17 @@ def _segment_payload(timeline: Timeline, idx: int) -> str:
     )
 
 
-def lesson_for_segment(timeline: Timeline, idx: int, llm: ChatModel) -> Lesson:
+def lesson_for_segment(
+    timeline: Timeline, idx: int, llm: ChatModel
+) -> tuple[Lesson, list[list[str]] | None]:
+    """Returns the lesson and per-line word meanings (None if the model's arrays don't line up)."""
     lang = timeline.song.sourceLang.value
-    pron, connected = FOCUS[lang]
+    f = FOCUS[lang]
     system = LESSON_SYSTEM.format(
-        lang_name=LANG_NAME[lang], pron_focus=pron, connected_focus=connected
+        lang_name=LANG_NAME[lang],
+        pron_focus=f["pron"],
+        connected_focus=f["connected"],
+        grammar_focus=f["grammar"],
     )
     data = llm.complete_json(system, _segment_payload(timeline, idx))
     if not isinstance(data, dict):
@@ -126,7 +142,19 @@ def lesson_for_segment(timeline: Timeline, idx: int, llm: ChatModel) -> Lesson:
         k: [str(x).strip() for x in data.get(k, []) if str(x).strip()][:limit]
         for k, limit in LIMITS.items()
     }
-    return Lesson(**clean)
+    lines = timeline.segments[idx].lines
+    meanings = data.get("wordMeanings")
+    ok = (
+        isinstance(meanings, list)
+        and len(meanings) == len(lines)
+        and all(
+            isinstance(m, list) and len(m) == len(ln.words)
+            for m, ln in zip(meanings, lines, strict=True)
+        )
+    )
+    if not ok and meanings is not None:
+        log.warning("segment %d: wordMeanings do not match the words — skipped", idx)
+    return Lesson(**clean), ([[str(x).strip() for x in m] for m in meanings] if ok else None)
 
 
 def add_lessons(timeline: Timeline, llm: ChatModel, report: Report, workers: int = 4) -> None:
@@ -138,9 +166,13 @@ def add_lessons(timeline: Timeline, llm: ChatModel, report: Report, workers: int
         nonlocal done
         seg: Segment = timeline.segments[idx]
         try:
-            lesson = lesson_for_segment(timeline, idx, llm)
+            lesson, meanings = lesson_for_segment(timeline, idx, llm)
             lesson.ttsUrl, lesson.ttsRate = seg.lesson.ttsUrl, seg.lesson.ttsRate  # keep P4 fields
             seg.lesson = lesson
+            if meanings:
+                for line, line_meanings in zip(seg.lines, meanings, strict=True):
+                    for w, m in zip(line.words, line_meanings, strict=True):
+                        w.meaning = m or None
         except Exception as e:  # one bad segment must not sink the job
             log.warning("lesson for segment %d failed: %s", idx, e)
         with lock:

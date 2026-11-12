@@ -20,12 +20,48 @@
           "start": 2.0,
           "end": 4.6,
           "words": [
-            { "text": "Walk", "start": 2.0, "end": 2.4, "reading": "wɔːk" },
-            { "text": "me", "start": 2.4, "end": 2.6, "reading": "miː" },
-            { "text": "out", "start": 2.6, "end": 3.0, "reading": "aʊt" },
-            { "text": "into", "start": 3.0, "end": 3.4, "reading": "ˈɪntuː" },
-            { "text": "the", "start": 3.4, "end": 3.6, "reading": "ðə" },
-            { "text": "light", "start": 3.6, "end": 4.6, "reading": "laɪt" }
+            {
+              "text": "Walk",
+              "start": 2.0,
+              "end": 2.4,
+              "reading": "wɔːk",
+              "meaning": "走"
+            },
+            {
+              "text": "me",
+              "start": 2.4,
+              "end": 2.6,
+              "reading": "miː",
+              "meaning": "我"
+            },
+            {
+              "text": "out",
+              "start": 2.6,
+              "end": 3.0,
+              "reading": "aʊt",
+              "meaning": "出去"
+            },
+            {
+              "text": "into",
+              "start": 3.0,
+              "end": 3.4,
+              "reading": "ˈɪntuː",
+              "meaning": "進入"
+            },
+            {
+              "text": "the",
+              "start": 3.4,
+              "end": 3.6,
+              "reading": "ðə",
+              "meaning": "那個（定冠詞）"
+            },
+            {
+              "text": "light",
+              "start": 3.6,
+              "end": 4.6,
+              "reading": "laɪt",
+              "meaning": "光"
+            }
           ]
         },
         {
@@ -34,17 +70,63 @@
           "start": 4.8,
           "end": 7.5,
           "words": [
-            { "text": "Hold", "start": 4.8, "end": 5.2, "reading": "hoʊld" },
-            { "text": "on", "start": 5.2, "end": 5.5, "reading": "ɑːn" },
-            { "text": "till", "start": 5.5, "end": 5.8, "reading": "tɪl" },
-            { "text": "the", "start": 5.8, "end": 5.95, "reading": "ðə" },
-            { "text": "night", "start": 5.95, "end": 6.4, "reading": "naɪt" },
-            { "text": "is", "start": 6.4, "end": 6.6, "reading": "ɪz" },
-            { "text": "gone", "start": 6.6, "end": 7.5, "reading": "ɡɔːn" }
+            {
+              "text": "Hold",
+              "start": 4.8,
+              "end": 5.2,
+              "reading": "hoʊld",
+              "meaning": "抓住"
+            },
+            {
+              "text": "on",
+              "start": 5.2,
+              "end": 5.5,
+              "reading": "ɑːn",
+              "meaning": "（持續）"
+            },
+            {
+              "text": "till",
+              "start": 5.5,
+              "end": 5.8,
+              "reading": "tɪl",
+              "meaning": "直到"
+            },
+            {
+              "text": "the",
+              "start": 5.8,
+              "end": 5.95,
+              "reading": "ðə",
+              "meaning": "那個（定冠詞）"
+            },
+            {
+              "text": "night",
+              "start": 5.95,
+              "end": 6.4,
+              "reading": "naɪt",
+              "meaning": "夜晚"
+            },
+            {
+              "text": "is",
+              "start": 6.4,
+              "end": 6.6,
+              "reading": "ɪz",
+              "meaning": "（be 動詞）"
+            },
+            {
+              "text": "gone",
+              "start": 6.6,
+              "end": 7.5,
+              "reading": "ɡɔːn",
+              "meaning": "離去的"
+            }
           ]
         }
       ],
       "lesson": {
+        "grammarNotes": [
+          "Walk me out：「動詞 + 受詞 + 介副詞」的片語動詞，walk someone out 是「陪某人走出去」。",
+          "Hold on till...：hold on 是「撐住、堅持」；till 是 until 的口語說法，「直到……」。"
+        ],
         "pronunciationNotes": [
           "Walk 的 l 不發音，唸 /wɔːk/。",
           "light 結尾的 t 唱的時候常輕到幾乎聽不見。"
@@ -71,21 +153,58 @@
           "start": 8.0,
           "end": 11.0,
           "words": [
-            { "text": "Every", "start": 8.0, "end": 8.6, "reading": "ˈɛvri" },
-            { "text": "step", "start": 8.6, "end": 9.0, "reading": "stɛp" },
-            { "text": "a", "start": 9.0, "end": 9.1, "reading": "ə" },
-            { "text": "little", "start": 9.1, "end": 9.8, "reading": "ˈlɪɾəl" },
-            { "text": "song", "start": 9.8, "end": 11.0, "reading": "sɔːŋ" }
+            {
+              "text": "Every",
+              "start": 8.0,
+              "end": 8.6,
+              "reading": "ˈɛvri",
+              "meaning": "每一"
+            },
+            {
+              "text": "step",
+              "start": 8.6,
+              "end": 9.0,
+              "reading": "stɛp",
+              "meaning": "步"
+            },
+            {
+              "text": "a",
+              "start": 9.0,
+              "end": 9.1,
+              "reading": "ə",
+              "meaning": "一（不定冠詞）"
+            },
+            {
+              "text": "little",
+              "start": 9.1,
+              "end": 9.8,
+              "reading": "ˈlɪɾəl",
+              "meaning": "小小的"
+            },
+            {
+              "text": "song",
+              "start": 9.8,
+              "end": 11.0,
+              "reading": "sɔːŋ",
+              "meaning": "歌"
+            }
           ]
         }
       ],
       "lesson": {
-        "pronunciationNotes": ["Every 只有兩個音節：/ˈɛv-ri/。"],
+        "grammarNotes": [
+          "Every step a little song：歌詞省略了 is，完整句是 Every step is a little song。"
+        ],
+        "pronunciationNotes": [
+          "Every 只有兩個音節：/ˈɛv-ri/。"
+        ],
         "connectedSpeech": [
           "step a → /stɛ-pə/。",
           "little 的 tt 美式發成彈舌音 /ɾ/，像很輕的 d。"
         ],
-        "singingTips": ["song 的 ng 收在鼻腔，不要多加 g 的音。"],
+        "singingTips": [
+          "song 的 ng 收在鼻腔，不要多加 g 的音。"
+        ],
         "ttsRate": 0.75
       }
     }

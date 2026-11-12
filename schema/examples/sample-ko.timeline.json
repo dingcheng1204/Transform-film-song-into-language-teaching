@@ -20,8 +20,22 @@
           "start": 2.0,
           "end": 4.6,
           "words": [
-            { "text": "같이", "start": 2.0, "end": 2.8, "reading": "가치", "romanization": "gachi" },
-            { "text": "걸어갈까", "start": 2.8, "end": 4.6, "reading": "거러갈까", "romanization": "georeogalkka" }
+            {
+              "text": "같이",
+              "start": 2.0,
+              "end": 2.8,
+              "reading": "가치",
+              "romanization": "gachi",
+              "meaning": "一起"
+            },
+            {
+              "text": "걸어갈까",
+              "start": 2.8,
+              "end": 4.6,
+              "reading": "거러갈까",
+              "romanization": "georeogalkka",
+              "meaning": "要走下去嗎"
+            }
           ]
         },
         {
@@ -30,12 +44,30 @@
           "start": 4.8,
           "end": 7.5,
           "words": [
-            { "text": "별빛", "start": 4.8, "end": 5.8, "reading": "별삗", "romanization": "byeolppit" },
-            { "text": "아래서", "start": 5.8, "end": 7.5, "reading": "아래서", "romanization": "araeseo" }
+            {
+              "text": "별빛",
+              "start": 4.8,
+              "end": 5.8,
+              "reading": "별삗",
+              "romanization": "byeolppit",
+              "meaning": "星光"
+            },
+            {
+              "text": "아래서",
+              "start": 5.8,
+              "end": 7.5,
+              "reading": "아래서",
+              "romanization": "araeseo",
+              "meaning": "在下面"
+            }
           ]
         }
       ],
       "lesson": {
+        "grammarNotes": [
+          "걸어갈까：걸어가다（走過去）＋ -ㄹ까，用來提議或自問「要不要……呢」。",
+          "아래서：아래（下面）＋ -서（-에서 的縮寫），表示「在……」。"
+        ],
         "pronunciationNotes": [
           "같이 不念 갇이，ㅌ 遇到 이 會顎化成 ㅊ，念 가치 gachi。",
           "별빛 的 빛 前面接 ㄹ，要念成緊音 삗，喉嚨用力、不送氣。"
@@ -62,15 +94,38 @@
           "start": 8.0,
           "end": 11.0,
           "words": [
-            { "text": "너를", "start": 8.0, "end": 9.0, "reading": "너를", "romanization": "neoreul" },
-            { "text": "좋아해", "start": 9.0, "end": 11.0, "reading": "조아해", "romanization": "joahae" }
+            {
+              "text": "너를",
+              "start": 8.0,
+              "end": 9.0,
+              "reading": "너를",
+              "romanization": "neoreul",
+              "meaning": "你（受詞）"
+            },
+            {
+              "text": "좋아해",
+              "start": 9.0,
+              "end": 11.0,
+              "reading": "조아해",
+              "romanization": "joahae",
+              "meaning": "喜歡"
+            }
           ]
         }
       ],
       "lesson": {
-        "pronunciationNotes": ["너 的 ㅓ 嘴巴要張開，介於 ㄛ 和 ㄜ 之間，不是 ㄡ。"],
-        "connectedSpeech": ["좋아해 → 조아해：ㅎ 收尾音遇到母音會脫落不發音。"],
-        "singingTips": ["좋아해 的 해 常拉長，尾音放輕，不要加重。"],
+        "grammarNotes": [
+          "너를 좋아해：를 是受詞助詞；좋아해 是半語，對朋友或戀人說，敬語是 좋아해요。"
+        ],
+        "pronunciationNotes": [
+          "너 的 ㅓ 嘴巴要張開，介於 ㄛ 和 ㄜ 之間，不是 ㄡ。"
+        ],
+        "connectedSpeech": [
+          "좋아해 → 조아해：ㅎ 收尾音遇到母音會脫落不發音。"
+        ],
+        "singingTips": [
+          "좋아해 的 해 常拉長，尾音放輕，不要加重。"
+        ],
         "ttsRate": 0.75
       }
     }

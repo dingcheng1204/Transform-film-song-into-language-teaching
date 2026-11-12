@@ -67,8 +67,16 @@ export interface Word {
    * ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted.
    */
   romanization?: string
+  /**
+   * Short zh-TW gloss of this word in context (e.g. 夜空 → 夜空, を → （受詞助詞）). Shown when the learner taps the word.
+   */
+  meaning?: string
 }
 export interface Lesson {
+  /**
+   * zh-TW notes on grammar and usage in this segment (particles, conjugations, set phrases) — what the learner can reuse outside the song.
+   */
+  grammarNotes?: string[]
   /**
    * zh-TW notes on hard sounds in this segment.
    */

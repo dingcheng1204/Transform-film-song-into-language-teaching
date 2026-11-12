@@ -41,6 +41,11 @@ key through Vercel Functions; only the worker holds the service-role key. See `w
 
 Never edit generated files by hand.
 
+## Goal
+
+Not just singing: learn Japanese / English / Korean naturally *through* songs you like —
+understand each line, hear and repeat each word, pick up reusable vocabulary and grammar, then sing it.
+
 ## Phases
 
 | Tag | Content |
@@ -48,10 +53,11 @@ Never edit generated files by hand.
 | `p0-scaffold` | Monorepo, schema, project skills, CI, Vercel shell |
 | `p1-player` | URL input + ≤6 min check, embedded player, pause/lesson card from sample timeline |
 | `p2-align` | Worker: audio → vocals → word timestamps → Supabase |
-| `p3-lessons` | Translation, furigana/romaji (ja), pronounced Hangul + RR (ko), IPA (en), LLM-generated lessons (MiniMax, OpenAI-compatible) |
-| `p4-tts` | Slow TTS readings in lesson cards |
-| `p5-pitch` | Pitch contour for singing tips |
-| `p6-cloud` | (optional) Worker on GPU host, mp4 export |
+| `p3-lessons` | zh-TW translation; readings (ja furigana/romaji, ko pronounced Hangul + RR, en IPA); per-word zh meanings; grammar / pronunciation / connected-speech / singing notes (LLM: MiniMax, OpenAI-compatible); tap a word to hear it + see its meaning; read word by word / slowly (browser speech) |
+| `p4-patterns` | Sentence patterns from each line + substitution drills (swap words, hear and say new sentences) |
+| `p5-review` | Save words/lines, spaced-repetition review, shadowing and dictation from the song |
+| `p6-voice` | Server TTS (more natural voices) and pitch contour for singing |
+| `p7-cloud` | (optional) Worker heavy stages on a cloud GPU |
 
 ## Supabase
 

@@ -82,6 +82,10 @@
         "romanization": {
           "type": "string",
           "description": "ja: Hepburn romaji. ko: Revised Romanization of the pronounced form. en: omitted."
+        },
+        "meaning": {
+          "type": "string",
+          "description": "Short zh-TW gloss of this word in context (e.g. 夜空 → 夜空, を → （受詞助詞）). Shown when the learner taps the word."
         }
       }
     },
@@ -90,6 +94,11 @@
       "additionalProperties": false,
       "required": ["pronunciationNotes", "connectedSpeech", "singingTips"],
       "properties": {
+        "grammarNotes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "zh-TW notes on grammar and usage in this segment (particles, conjugations, set phrases) — what the learner can reuse outside the song."
+        },
         "pronunciationNotes": {
           "type": "array",
           "items": { "type": "string" },

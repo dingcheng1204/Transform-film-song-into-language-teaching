@@ -14,7 +14,9 @@ OUT = Path(__file__).with_name("timeline.py")
 
 def main() -> None:
     cmd = [
-        "datamodel-codegen",
+        sys.executable,
+        "-m",
+        "datamodel_code_generator",
         "--input",
         str(SCHEMA),
         "--input-file-type",
