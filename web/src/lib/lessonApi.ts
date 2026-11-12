@@ -43,6 +43,9 @@ const STAGE: Record<string, string> = {
   separate: '分離人聲（最花時間的一步）',
   align: '辨識歌詞和每個字的時間',
   segment: '切分教學段落',
+  readings: '標註讀音',
+  translate: '翻譯歌詞',
+  lessons: '產生每段的發音教學',
   done: '完成',
 }
 

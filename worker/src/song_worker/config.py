@@ -16,7 +16,12 @@ def load_dotenv(path: Path = WORKER_DIR / ".env") -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+        value = value.strip()
+        if value[:1] in ('"', "'"):
+            value = value[1:].split(value[0], 1)[0]  # quoted: keep everything inside the quotes
+        else:
+            value = value.split(" #", 1)[0].strip()  # unquoted: drop inline comment
+        os.environ.setdefault(key.strip(), value)
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,11 @@ class Settings:
     compute_type: str = "int8"
     batch_size: int = 4
     poll_seconds: float = 5.0
+    # P3 LLM (OpenAI-compatible; default MiniMax)
+    llm_api_key: str = ""
+    llm_base_url: str = "https://api.minimax.io/v1"
+    llm_model: str = "MiniMax-M3"
+    llm_concurrency: int = 4
 
     @classmethod
     def from_env(cls, require_supabase: bool = True) -> "Settings":
@@ -47,4 +57,15 @@ class Settings:
             compute_type=os.environ.get("COMPUTE_TYPE", "int8"),
             batch_size=int(os.environ.get("BATCH_SIZE", "4")),
             poll_seconds=float(os.environ.get("POLL_SECONDS", "5")),
+            llm_api_key=os.environ.get("LLM_API_KEY") or os.environ.get("MINIMAX_API_KEY", ""),
+            llm_base_url=os.environ.get("LLM_BASE_URL", "https://api.minimax.io/v1"),
+            llm_model=os.environ.get("LLM_MODEL", "MiniMax-M3"),
+            llm_concurrency=int(os.environ.get("LLM_CONCURRENCY", "4")),
         )
+
+    def make_llm(self):
+        if not self.llm_api_key:
+            return None
+        from song_worker.llm import OpenAICompatible
+
+        return OpenAICompatible(self.llm_api_key, self.llm_base_url, self.llm_model)

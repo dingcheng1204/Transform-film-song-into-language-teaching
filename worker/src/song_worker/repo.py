@@ -84,6 +84,27 @@ class SupabaseRepo:
         )
         r.raise_for_status()
 
+    def get_timeline(self, youtube_id: str, lang: str) -> dict[str, Any] | None:
+        r = self.http.get(
+            "/timelines",
+            params={
+                "youtube_id": f"eq.{youtube_id}",
+                "source_lang": f"eq.{lang}",
+                "select": "timeline",
+            },
+        )
+        r.raise_for_status()
+        rows = r.json()
+        return rows[0]["timeline"] if rows else None
+
+    def update_timeline(self, youtube_id: str, lang: str, timeline: dict[str, Any]) -> None:
+        r = self.http.patch(
+            "/timelines",
+            params={"youtube_id": f"eq.{youtube_id}", "source_lang": f"eq.{lang}"},
+            json={"timeline": timeline, "schema_version": timeline["schemaVersion"]},
+        )
+        r.raise_for_status()
+
     def finish(self, job_id: str) -> None:
         self._patch_job(
             job_id, {"status": "done", "stage": "done", "progress": 100, "finished_at": _now()}

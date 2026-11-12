@@ -1,20 +1,23 @@
 """Run the stages for one job. Stages are injectable so the flow is testable without
 yt-dlp / Demucs / WhisperX installed.
 
-Progress ranges: probe 0–5, download 5–15, separate 15–45, align 45–90, build 90–100.
-P3 (annotate) and P4 (tts) slot in before build.
+Progress ranges: probe 0–5, download 5–15, separate 15–45, align 45–85, segment 85,
+readings 86, translate 88, lessons 90–99. P4 (tts) slots in after lessons.
 """
 
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from song_worker.build import build_timeline
 from song_worker.ingest import check_metadata
 from song_worker.ja_tokens import Tokenizer, merge_chars
 from song_worker.segment import RawWord, fill_missing_times, to_lines, to_segments
 from song_worker.timeline import Timeline
+
+if TYPE_CHECKING:
+    from song_worker.config import Settings
 
 Report = Callable[[str, int], None]
 
@@ -26,11 +29,16 @@ class Stages:
     separate: Callable[[Path], Path]
     align: Callable[[Path, str], list[RawWord]]
     ja_tokenizer: Callable[[], Tokenizer]
+    annotate: Callable[[Timeline, Report], Timeline] | None = None
 
 
-def default_stages(whisper_model: str, device: str, compute_type: str, batch_size: int) -> Stages:
+def default_stages(settings: "Settings") -> Stages:
     from song_worker import align, ingest, ja_tokens, separate
+    from song_worker.annotate import annotate
 
+    whisper_model, device = settings.whisper_model, settings.device
+    compute_type, batch_size = settings.compute_type, settings.batch_size
+    llm = settings.make_llm()
     return Stages(
         probe=ingest.probe,
         download=ingest.download_audio,
@@ -39,6 +47,7 @@ def default_stages(whisper_model: str, device: str, compute_type: str, batch_siz
             vocals, lang, whisper_model, device, compute_type, batch_size
         ),
         ja_tokenizer=ja_tokens.fugashi_tokenizer,
+        annotate=lambda t, report: annotate(t, llm, report, workers=settings.llm_concurrency),
     )
 
 
@@ -57,7 +66,10 @@ def process(youtube_id: str, lang: str, workdir: Path, stages: Stages, report: R
     if lang == "ja":
         raw = merge_chars(raw, stages.ja_tokenizer())
 
-    report("segment", 90)
+    report("segment", 85)
     lines = to_lines(fill_missing_times(raw), lang)
     segments = to_segments(lines)
-    return build_timeline(youtube_id, title, duration, lang, segments)
+    timeline = build_timeline(youtube_id, title, duration, lang, segments)
+    if stages.annotate:
+        timeline = stages.annotate(timeline, report)
+    return timeline

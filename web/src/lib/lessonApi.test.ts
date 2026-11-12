@@ -20,6 +20,7 @@ describe('labels', () => {
   it('pending vs processing stage', () => {
     expect(stageLabel({ status: 'pending', stage: null })).toContain('排隊')
     expect(stageLabel({ status: 'processing', stage: 'separate' })).toContain('分離人聲')
+    expect(stageLabel({ status: 'processing', stage: 'lessons' })).toContain('教學')
     expect(stageLabel({ status: 'processing', stage: 'weird' })).toBe('處理中')
   })
 

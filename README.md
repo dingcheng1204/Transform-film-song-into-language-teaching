@@ -48,7 +48,7 @@ Never edit generated files by hand.
 | `p0-scaffold` | Monorepo, schema, project skills, CI, Vercel shell |
 | `p1-player` | URL input + ≤6 min check, embedded player, pause/lesson card from sample timeline |
 | `p2-align` | Worker: audio → vocals → word timestamps → Supabase |
-| `p3-lessons` | Translation, furigana/romaji (ja), pronounced Hangul + RR (ko), IPA (en), Claude-generated lessons |
+| `p3-lessons` | Translation, furigana/romaji (ja), pronounced Hangul + RR (ko), IPA (en), LLM-generated lessons (MiniMax, OpenAI-compatible) |
 | `p4-tts` | Slow TTS readings in lesson cards |
 | `p5-pitch` | Pitch contour for singing tips |
 | `p6-cloud` | (optional) Worker on GPU host, mp4 export |

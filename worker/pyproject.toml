@@ -1,7 +1,7 @@
 [project]
 name = "song-worker"
 version = "0.2.0"
-description = "Pipeline: YouTube audio -> vocals -> word timestamps -> lessons -> TTS -> Supabase"
+description = "Pipeline: YouTube audio -> vocals -> word timestamps -> readings/translation/lessons -> Supabase"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "pydantic>=2.8",
@@ -20,8 +20,11 @@ pipeline = [
     "torchvision~=0.23.0",
     "fugashi>=1.5",
     "unidic-lite>=1.0.8",
+    # P3 readings (en IPA also needs: sudo apt install espeak-ng)
+    "pykakasi>=2.3",
+    "korean-romanizer>=0.28",
+    "phonemizer>=3.3",
 ]
-# p3 = ["anthropic", "pykakasi", "phonemizer", "g2pk", "korean-romanizer"]
 # p5 = ["librosa"]
 
 [project.scripts]

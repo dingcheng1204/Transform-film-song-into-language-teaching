@@ -56,7 +56,7 @@ export default function LessonPage() {
         </div>
         {!hasLessons && (
           <p className="text-sm text-muted">
-            目前有逐字時間和自動暫停；翻譯、發音標註和教學說明會在下一個版本加入。
+            這首歌是在加入教學說明之前處理的，目前只有逐字時間和自動暫停。重新處理後就會有翻譯和發音說明。
           </p>
         )}
         <LessonPlayer key={lang} timeline={timeline} />

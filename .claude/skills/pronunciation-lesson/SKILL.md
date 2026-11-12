@@ -17,10 +17,11 @@ Taiwanese learners singing Japanese, English or Korean songs. All explanations i
 
 Each item is one short sentence that quotes the exact words from the segment. No generic advice ("多練習").
 
-## Generation (Claude API)
+## Generation (LLM — MiniMax by default; `worker/src/song_worker/annotate.py`)
 - One call per **segment**, but include the previous and next line as context.
 - Give the model: lines, word timings (so it can spot held notes = long word durations), readings.
-- Ask for JSON matching `Lesson` minus `ttsUrl`/`ttsRate`; validate with the generated Pydantic model; retry once on validation failure, then store empty arrays and flag `needs_review`.
+- Ask for JSON matching `Lesson` minus `ttsUrl`/`ttsRate`; trim to the limits and validate with the generated Pydantic model. Unparsable output is retried once; a segment that still fails keeps empty arrays (the job does not fail).
+- Segments run in parallel (`LLM_CONCURRENCY`, default 4).
 
 ## Lesson card UI (web)
 - Shown when playback reaches `segment.end` and the player is paused.

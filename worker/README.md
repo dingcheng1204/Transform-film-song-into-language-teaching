@@ -6,7 +6,7 @@ Runs on your own machine. Defaults are tuned for **CPU only (no NVIDIA GPU), Ubu
 ## Setup (Ubuntu, CPU)
 
 ```bash
-sudo apt update && sudo apt install -y ffmpeg
+sudo apt update && sudo apt install -y ffmpeg espeak-ng   # espeak-ng: English IPA
 curl -LsSf https://astral.sh/uv/install.sh | sh     # if uv is not installed
 
 cd worker
@@ -20,7 +20,10 @@ cp .env.example .env            # then fill in the values below
 SUPABASE_URL=https://yzqirjnhldwqjjakxeko.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<Supabase Dashboard → Project Settings → API Keys → service_role / secret>
 WHISPER_MODEL=medium            # "small" is ~3–4× faster on CPU, less accurate
+LLM_API_KEY=<MiniMax API key>   # https://platform.minimax.io → API Keys; translation + lessons
 ```
+
+Without `LLM_API_KEY` the worker still adds readings (furigana / pronounced Hangul / IPA) but skips translation and lessons.
 
 The service-role key stays in this file only — never commit it, never put it in Vercel.
 
@@ -34,6 +37,9 @@ uv run song-worker validate XXXXXXXXXXX.ja.timeline.json
 # Then process jobs submitted from the website
 uv run song-worker run            # polls every 5 s, Ctrl+C to stop
 uv run song-worker run --once     # process at most one job
+
+# Add translation/readings/lessons to a song processed before P3 (no audio work)
+uv run song-worker annotate "https://www.youtube.com/watch?v=XXXXXXXXXXX" --lang ja
 ```
 
 First run downloads models into `~/.cache` (Whisper medium ≈ 1.5 GB, alignment model per language ≈ 1.2 GB, htdemucs ≈ 80 MB).
