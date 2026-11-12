@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 
 LINE_GAP_SEC = 0.6
-MAX_LINE_SEC = 12.0
-MAX_LINE_UNITS = {"en": 14, "ja": 25, "ko": 8}  # words / characters / eojeol
+MAX_LINE_SEC = 8.0
+MAX_LINE_UNITS = {"en": 10, "ja": 18, "ko": 6}  # words / characters / eojeol
 MERGE_PAIR_MAX_SEC = 8.0
 PAD_BEFORE = 0.15
 PAD_AFTER = 0.25

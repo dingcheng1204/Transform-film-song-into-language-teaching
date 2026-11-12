@@ -23,7 +23,7 @@ Never hand-edit the generated files. CI fails if they are stale.
 
 ## Lines
 - Split on Whisper segment boundaries first, then on gaps ≥ 0.6 s between words.
-- A line longer than 12 s or ~14 English words / ~25 Japanese chars / ~8 Korean eojeol is split at the largest internal gap.
+- A line longer than 8 s or 10 English words / 18 Japanese chars / 6 Korean eojeol is split at the largest internal gap.
 
 ## Segments (the play-then-pause unit)
 - 1–2 lines per segment (schema enforces `maxItems: 2`).

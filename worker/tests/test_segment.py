@@ -56,15 +56,23 @@ class TestLines:
         assert line_text(lines[0], "ja") == "夜空星"
 
     def test_long_line_split_at_largest_gap(self):
-        words = evenly([f"w{i}" for i in range(10)], 0, 0.5) + evenly(
-            [f"x{i}" for i in range(10)], 5.3, 0.5
-        )  # 0.35s gap between halves, the largest; 20 words > 14
+        words = evenly([f"w{i}" for i in range(6)], 0, 0.4) + evenly(
+            [f"x{i}" for i in range(7)], 2.65, 0.4
+        )  # 0.3s gap between halves, the largest; 13 words > 10 (two sung lines merged by Whisper)
         lines = to_lines(words, "en")
-        assert [len(x.words) for x in lines] == [10, 10]
+        assert [len(x.words) for x in lines] == [6, 7]
+
+    def test_long_duration_split(self):
+        words = [w("a", 0, 3), w("b", 3.1, 6), w("c", 6.5, 9.5)]  # 9.5s > 8s, largest gap before c
+        assert [len(x.words) for x in to_lines(words, "en")] == [2, 1]
 
     def test_korean_eojeol_limit(self):
-        words = evenly([f"말{i}" for i in range(9)], 0, 0.6)
+        words = evenly([f"말{i}" for i in range(7)], 0, 0.6)
         assert len(to_lines(words, "ko")) == 2
+
+    def test_japanese_char_limit(self):
+        words = evenly(["あいうえお"] * 4, 0, 0.5)  # 20 chars > 18
+        assert len(to_lines(words, "ja")) == 2
 
 
 class TestSegments:
