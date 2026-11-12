@@ -64,7 +64,7 @@ export default function LessonCard({
     >
       {locked && (
         <p className="mb-3 text-sm font-medium text-ink" role="status">
-          重播中…播完這段會自動停下
+          播放中…這段唱完會自動停下
         </p>
       )}
       {/* A disabled fieldset disables every button, input and textarea inside it. */}

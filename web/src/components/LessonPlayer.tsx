@@ -22,26 +22,28 @@ type WordRef = { line: number; word: number }
 // Plays the embedded video, pauses after each 1–2-line segment, shows the lesson card.
 export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const { song, segments } = timeline
-  const [mode, setMode] = useState<Mode>('watch')
-  // Replaying the current segment from the lesson card keeps the card on screen (locked).
-  const [replaying, setReplaying] = useState(false)
-  const replayingRef = useRef(false)
-  const setReplay = (v: boolean) => {
-    replayingRef.current = v
-    setReplaying(v)
+  // The lesson card is shown from the first play on and always follows the segment being
+  // played: locked while it plays, unlocked when playback pauses at (or before) its end.
+  const [mode, setModeState] = useState<Mode>('watch')
+  const modeRef = useRef<Mode>('watch')
+  const setMode = (m: Mode) => {
+    modeRef.current = m
+    setModeState(m)
   }
-  // Pressing play inside the iframe during a lesson just resumes watching.
+  const [started, setStarted] = useState(false)
   const { containerRef, playerRef, ready, state, error } = useYouTubePlayer(song.youtubeId, (s) => {
-    if (s === PlayerState.PLAYING) setMode((m) => (m === 'lesson' ? 'watch' : m))
-    if (s === PlayerState.PAUSED && replayingRef.current) {
-      // Paused mid-replay (e.g. Space or the iframe's pause button): back to the unlocked card.
-      setReplay(false)
-      setMode((m) => (m === 'watch' ? 'lesson' : m))
+    // Pressing play inside the iframe during a lesson just resumes watching.
+    if (s === PlayerState.PLAYING) {
+      setStarted(true)
+      if (modeRef.current === 'lesson') setMode('watch')
     }
-    if (s === PlayerState.ENDED) {
-      setReplay(false)
-      setMode('done')
+    // Paused mid-segment (Space or the iframe's own button): study the segment being played.
+    if (s === PlayerState.PAUSED && modeRef.current === 'watch') {
+      const now = playerRef.current?.getCurrentTime() ?? 0
+      setT(now)
+      openLesson(currentIndex(segments, now))
     }
+    if (s === PlayerState.ENDED) setMode('done')
   })
 
   const [lessonIdx, setLessonIdx] = useState(0)
@@ -51,6 +53,19 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const lastPaused = useRef(-1)
   const prevT = useRef(0)
   const lessonIdxRef = useRef(0)
+
+  /** Switch to the (unlocked) lesson card for segment `idx`. */
+  function openLesson(idx: number) {
+    if (idx !== lessonIdxRef.current) {
+      // New segment: start its practice fresh.
+      setDictAnswer('')
+      setDictResults(null)
+    }
+    lessonIdxRef.current = idx
+    setLessonIdx(idx)
+    setCountdown(AUTO_SECONDS)
+    setMode('lesson')
+  }
 
   // Dictation / shadowing state lives here so it survives replaying the segment.
   const [practice, setPractice] = useState<Practice>(null)
@@ -119,29 +134,30 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       prevT.current = now
       setT(now)
       if (r.pauseIdx !== null) {
+        openLesson(r.pauseIdx) // mode becomes 'lesson' before the PAUSED event arrives
         p.pauseVideo()
-        if (r.pauseIdx !== lessonIdxRef.current) {
-          // New segment: start its practice fresh.
-          setDictAnswer('')
-          setDictResults(null)
-        }
-        lessonIdxRef.current = r.pauseIdx
-        setReplay(false)
-        setLessonIdx(r.pauseIdx)
-        setCountdown(AUTO_SECONDS)
-        setMode('lesson')
       }
     }, POLL_MS)
     return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, state, segments, playerRef])
 
-  const play = useCallback(() => {
-    stopSpeech()
-    setSelected(null)
-    setReplay(false)
-    setMode('watch')
-    playerRef.current?.playVideo()
-  }, [playerRef, stopSpeech])
+  const play = useCallback(
+    (opts: { keepPractice?: boolean } = {}) => {
+      stopSpeech()
+      setSelected(null)
+      if (!opts.keepPractice) {
+        // Moving on: the next segment's practice starts empty.
+        setDictAnswer('')
+        setDictResults(null)
+      }
+      setStarted(true)
+      setMode('watch')
+      playerRef.current?.playVideo()
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [playerRef, stopSpeech],
+  )
 
   const replay = useCallback(
     (i: number) => {
@@ -152,12 +168,9 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       prevT.current = start
       setT(start)
       p.seekTo(start, true)
-      // Same segment as the open lesson card → keep the card visible but locked while it plays.
-      const keepCard = mode === 'lesson' && i === lessonIdxRef.current
-      play()
-      if (keepCard) setReplay(true)
+      play({ keepPractice: i === lessonIdxRef.current })
     },
-    [segments, playerRef, play, mode],
+    [segments, playerRef, play],
   )
 
   // Auto-continue countdown (paused while the learner is studying words).
@@ -177,9 +190,9 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
 
   const shownIdx = mode === 'lesson' ? lessonIdx : currentIndex(segments, t)
   const shown = segments[shownIdx]
-  const hideLyrics = practice === 'dictation' && !dictResults && shownIdx === lessonIdx
+  const hideLyrics = practice === 'dictation' && !dictResults
 
-  const lessonSeg = segments[lessonIdx]
+  const lessonSeg = segments[shownIdx]
   const segSeconds = lessonSeg.end - lessonSeg.start
   function playMine() {
     if (recorder.url) void new Audio(recorder.url).play()
@@ -275,16 +288,16 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       onRecord={() => recorder.start((segSeconds + 1.5) * 1000)}
       onRecordWithSong={() => {
         void recorder.start((segSeconds + 1.5) * 1000)
-        replay(lessonIdx)
+        replay(shownIdx)
       }}
       onStopRecording={recorder.stop}
       onPlayMine={playMine}
       onCompare={() => {
-        replay(lessonIdx)
+        replay(shownIdx)
         if (compareTimer.current) window.clearTimeout(compareTimer.current)
         compareTimer.current = window.setTimeout(playMine, (segSeconds + 0.6) * 1000)
       }}
-      onReplay={() => replay(lessonIdx)}
+      onReplay={() => replay(shownIdx)}
     />
   )
 
@@ -329,21 +342,21 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
           />
         )}
 
-        {(mode === 'lesson' || replaying) && (
+        {(mode === 'lesson' || (mode === 'watch' && started)) && (
           <LessonCard
-            locked={replaying}
-            segment={segments[lessonIdx]}
-            isLast={lessonIdx === segments.length - 1}
+            locked={mode === 'watch'}
+            segment={segments[shownIdx]}
+            isLast={shownIdx === segments.length - 1}
             autoMode={autoMode}
             countdown={autoActive ? countdown : null}
             lang={lang}
             savedLines={
               canSave
-                ? segments[lessonIdx].lines.map((_, i) => isSaved(lineItem(song.youtubeId, lang, segments[lessonIdx], i)))
+                ? segments[shownIdx].lines.map((_, i) => isSaved(lineItem(song.youtubeId, lang, segments[shownIdx], i)))
                 : undefined
             }
             onToggleSaveLine={
-              canSave ? (i) => toggleSave(lineItem(song.youtubeId, lang, segments[lessonIdx], i)) : undefined
+              canSave ? (i) => toggleSave(lineItem(song.youtubeId, lang, segments[shownIdx], i)) : undefined
             }
             onSpeakText={(text) => {
               stopSpeech()
@@ -354,8 +367,8 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             onSpeakWords={speakWords}
             onSpeakSlow={speakSlow}
             onStopSpeaking={stopSpeech}
-            onReplay={() => replay(lessonIdx)}
-            onContinue={play}
+            onReplay={() => replay(shownIdx)}
+            onContinue={() => play()}
             onToggleAuto={() => {
               setCountdown(AUTO_SECONDS)
               setAutoMode((a) => !a)
@@ -367,7 +380,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
         {mode === 'watch' && ready && state !== PlayerState.PLAYING && (
           <button
             type="button"
-            onClick={play}
+            onClick={() => play()}
             className="rounded-md bg-ink px-5 py-2.5 font-medium text-white hover:bg-ink-soft"
           >
             {t === 0 ? '開始播放' : '繼續播放'}
