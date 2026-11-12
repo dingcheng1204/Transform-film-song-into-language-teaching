@@ -15,6 +15,9 @@ from song_worker.timeline import Timeline
 
 log = logging.getLogger("song_worker")
 
+# Particles are written は/へ/を but romanized by pronunciation (wa/e/o) in learner Hepburn.
+JA_PARTICLE_ROMAJI = {"は": "wa", "へ": "e", "を": "o"}
+
 # word text -> (reading, romanization)
 Annotator = Callable[[list[str]], list[tuple[str | None, str | None]]]
 
@@ -27,6 +30,9 @@ def ja_annotator() -> Annotator:
     def run(words: list[str]) -> list[tuple[str | None, str | None]]:
         out = []
         for w in words:
+            if w in JA_PARTICLE_ROMAJI:  # Whisper/fugashi tokens: a lone は/へ/を is the particle
+                out.append((w, JA_PARTICLE_ROMAJI[w]))
+                continue
             parts = kks.convert(w)
             out.append(("".join(p["hira"] for p in parts), "".join(p["hepburn"] for p in parts)))
         return out
@@ -88,3 +94,29 @@ def add_readings(timeline: Timeline, annotator: Annotator | None = None) -> Time
         w.reading = reading or None
         w.romanization = roman or None
     return timeline
+
+
+def sentence_reading(text: str, lang: str) -> tuple[str | None, str | None]:
+    """Whole-sentence reading for generated examples (ja kana + Hepburn, ko pronounced + RR).
+    English and missing backends return (None, None)."""
+    try:
+        if lang == "ja":
+            import pykakasi
+
+            parts = pykakasi.kakasi().convert(text)
+            hira = "".join(p["hira"] for p in parts)
+            roman = " ".join(
+                JA_PARTICLE_ROMAJI.get(p["orig"], p["hepburn"])
+                for p in parts
+                if p["hepburn"].strip()
+            )
+            return (hira if hira != text else None), roman or None
+        if lang == "ko":
+            from song_worker.ko_pron import pronounce, romanize
+
+            eojeol = text.split()
+            pron = [pronounce(e) for e in eojeol]
+            return " ".join(pron), " ".join(romanize(p) for p in pron)
+    except Exception as e:
+        log.warning("sentence reading for %s failed: %s", lang, e)
+    return None, None

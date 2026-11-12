@@ -55,6 +55,54 @@ class Word(BaseModel):
     )
 
 
+class PatternExample(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    text: str = Field(
+        ...,
+        description="New sentence in the song's language built from the pattern.",
+        min_length=1,
+    )
+    translation: str = Field(..., description='zh-TW translation.')
+    swap: str | None = Field(
+        None, description='What was substituted, e.g. 「星 → 月」.'
+    )
+    reading: str | None = Field(
+        None,
+        description='ja: whole sentence in hiragana. ko: pronounced Hangul. en: omitted.',
+    )
+    romanization: str | None = Field(
+        None, description='ja: Hepburn. ko: Revised Romanization. en: omitted.'
+    )
+
+
+class Line(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    text: str = Field(..., description='Original sung text.', min_length=1)
+    translation: str = Field(..., description='zh-TW translation.')
+    start: float = Field(..., ge=0.0)
+    end: float = Field(..., gt=0.0)
+    words: list[Word]
+
+
+class Pattern(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    pattern: str = Field(
+        ...,
+        description='The pattern with slots, e.g. 「〔名詞〕に光る〔名詞〕」 / "I want to ___" / "〔名詞〕를 좋아해".',
+        min_length=1,
+    )
+    explanation: str = Field(
+        ..., description='zh-TW: what the pattern means and when to use it.'
+    )
+    examples: list[PatternExample] = Field(..., max_length=4, min_length=1)
+
+
 class Lesson(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -79,17 +127,11 @@ class Lesson(BaseModel):
     ttsRate: float | None = Field(
         None, description='Speaking rate used for the TTS reading.', ge=0.5, le=1.0
     )
-
-
-class Line(BaseModel):
-    model_config = ConfigDict(
-        extra='forbid',
+    patterns: list[Pattern] | None = Field(
+        None,
+        description='Reusable sentence patterns from this segment with substitution examples (P4).',
+        max_length=2,
     )
-    text: str = Field(..., description='Original sung text.', min_length=1)
-    translation: str = Field(..., description='zh-TW translation.')
-    start: float = Field(..., ge=0.0)
-    end: float = Field(..., gt=0.0)
-    words: list[Word]
 
 
 class Segment(BaseModel):

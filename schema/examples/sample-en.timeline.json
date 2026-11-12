@@ -139,7 +139,30 @@
           "light 和 gone 都是長音，母音拉長、子音最後才收。",
           "兩句之間在 light 後面換氣。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "Walk me out into the 〔名詞〕",
+            "explanation": "walk someone out into...：陪某人走進某個地方或狀態。",
+            "examples": [
+              {
+                "text": "Walk me out into the rain",
+                "translation": "陪我走進雨中",
+                "swap": "light → rain"
+              },
+              {
+                "text": "Walk me out into the street",
+                "translation": "陪我走到街上",
+                "swap": "light → street"
+              },
+              {
+                "text": "Walk me out into the morning",
+                "translation": "陪我走進早晨",
+                "swap": "light → morning"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -205,7 +228,30 @@
         "singingTips": [
           "song 的 ng 收在鼻腔，不要多加 g 的音。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "Every 〔名詞〕 a little 〔名詞〕",
+            "explanation": "省略 is 的詩句寫法；平常說話要說 Every ___ is a little ___。",
+            "examples": [
+              {
+                "text": "Every day is a little gift",
+                "translation": "每一天都是一份小禮物",
+                "swap": "step → day, song → gift"
+              },
+              {
+                "text": "Every word is a little light",
+                "translation": "每個字都是一點光",
+                "swap": "step → word, song → light"
+              },
+              {
+                "text": "Every smile is a little song",
+                "translation": "每個微笑都是一首小歌",
+                "swap": "step → smile"
+              }
+            ]
+          }
+        ]
       }
     }
   ]

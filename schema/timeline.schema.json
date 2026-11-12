@@ -5,76 +5,165 @@
   "description": "Single source of truth for a processed song lesson. The worker writes it, the web player reads it. TS types and Pydantic models are generated from this file — never edit them by hand.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "song", "segments"],
+  "required": [
+    "schemaVersion",
+    "song",
+    "segments"
+  ],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
-    "song": { "$ref": "#/$defs/Song" },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "song": {
+      "$ref": "#/$defs/Song"
+    },
     "segments": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/Segment" }
+      "items": {
+        "$ref": "#/$defs/Segment"
+      }
     }
   },
   "$defs": {
     "Song": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["youtubeId", "title", "durationSec", "sourceLang", "targetLang"],
+      "required": [
+        "youtubeId",
+        "title",
+        "durationSec",
+        "sourceLang",
+        "targetLang"
+      ],
       "properties": {
-        "youtubeId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{11}$" },
-        "title": { "type": "string", "minLength": 1 },
-        "artist": { "type": "string" },
+        "youtubeId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{11}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artist": {
+          "type": "string"
+        },
         "durationSec": {
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 360,
           "description": "Input limit: 6 minutes."
         },
-        "sourceLang": { "enum": ["en", "ja", "ko"], "description": "Language being sung." },
-        "targetLang": { "enum": ["zh-TW"], "description": "Translation / explanation language." }
+        "sourceLang": {
+          "enum": [
+            "en",
+            "ja",
+            "ko"
+          ],
+          "description": "Language being sung."
+        },
+        "targetLang": {
+          "enum": [
+            "zh-TW"
+          ],
+          "description": "Translation / explanation language."
+        }
       }
     },
     "Segment": {
       "type": "object",
       "description": "One teaching unit: play [start, end) then pause and show the lesson. Holds 1–2 lines.",
       "additionalProperties": false,
-      "required": ["id", "start", "end", "lines", "lesson"],
+      "required": [
+        "id",
+        "start",
+        "end",
+        "lines",
+        "lesson"
+      ],
       "properties": {
-        "id": { "type": "integer", "minimum": 0 },
-        "start": { "type": "number", "minimum": 0 },
-        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "start": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
         "lines": {
           "type": "array",
           "minItems": 1,
           "maxItems": 2,
-          "items": { "$ref": "#/$defs/Line" }
+          "items": {
+            "$ref": "#/$defs/Line"
+          }
         },
-        "lesson": { "$ref": "#/$defs/Lesson" }
+        "lesson": {
+          "$ref": "#/$defs/Lesson"
+        }
       }
     },
     "Line": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["text", "translation", "start", "end", "words"],
+      "required": [
+        "text",
+        "translation",
+        "start",
+        "end",
+        "words"
+      ],
       "properties": {
-        "text": { "type": "string", "minLength": 1, "description": "Original sung text." },
-        "translation": { "type": "string", "description": "zh-TW translation." },
-        "start": { "type": "number", "minimum": 0 },
-        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Original sung text."
+        },
+        "translation": {
+          "type": "string",
+          "description": "zh-TW translation."
+        },
+        "start": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
         "words": {
           "type": "array",
-          "items": { "$ref": "#/$defs/Word" }
+          "items": {
+            "$ref": "#/$defs/Word"
+          }
         }
       }
     },
     "Word": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["text", "start", "end"],
+      "required": [
+        "text",
+        "start",
+        "end"
+      ],
       "properties": {
-        "text": { "type": "string", "minLength": 1 },
-        "start": { "type": "number", "minimum": 0 },
-        "end": { "type": "number", "exclusiveMinimum": 0 },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
         "reading": {
           "type": "string",
           "description": "ja: hiragana reading (furigana). ko: Hangul as actually pronounced after sound changes (e.g. 같이 → 가치). en: IPA."
@@ -92,26 +181,38 @@
     "Lesson": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pronunciationNotes", "connectedSpeech", "singingTips"],
+      "required": [
+        "pronunciationNotes",
+        "connectedSpeech",
+        "singingTips"
+      ],
       "properties": {
         "grammarNotes": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "zh-TW notes on grammar and usage in this segment (particles, conjugations, set phrases) — what the learner can reuse outside the song."
         },
         "pronunciationNotes": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "zh-TW notes on hard sounds in this segment."
         },
         "connectedSpeech": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Linking, reduction, elision, devoicing, long vowels, etc."
         },
         "singingTips": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Rhythm, held notes, breath points."
         },
         "ttsUrl": {
@@ -123,6 +224,73 @@
           "minimum": 0.5,
           "maximum": 1.0,
           "description": "Speaking rate used for the TTS reading."
+        },
+        "patterns": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/Pattern"
+          },
+          "description": "Reusable sentence patterns from this segment with substitution examples (P4)."
+        }
+      }
+    },
+    "Pattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pattern",
+        "explanation",
+        "examples"
+      ],
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The pattern with slots, e.g. 「〔名詞〕に光る〔名詞〕」 / \"I want to ___\" / \"〔名詞〕를 좋아해\"."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "zh-TW: what the pattern means and when to use it."
+        },
+        "examples": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/PatternExample"
+          }
+        }
+      }
+    },
+    "PatternExample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "translation"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New sentence in the song's language built from the pattern."
+        },
+        "translation": {
+          "type": "string",
+          "description": "zh-TW translation."
+        },
+        "swap": {
+          "type": "string",
+          "description": "What was substituted, e.g. 「星 → 月」."
+        },
+        "reading": {
+          "type": "string",
+          "description": "ja: whole sentence in hiragana. ko: pronounced Hangul. en: omitted."
+        },
+        "romanization": {
+          "type": "string",
+          "description": "ja: Hepburn. ko: Revised Romanization. en: omitted."
         }
       }
     }

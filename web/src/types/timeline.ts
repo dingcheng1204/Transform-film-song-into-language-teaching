@@ -97,4 +97,51 @@ export interface Lesson {
    * Speaking rate used for the TTS reading.
    */
   ttsRate?: number
+  /**
+   * Reusable sentence patterns from this segment with substitution examples (P4).
+   *
+   * @maxItems 2
+   */
+  patterns?: [] | [Pattern] | [Pattern, Pattern]
+}
+export interface Pattern {
+  /**
+   * The pattern with slots, e.g. 「〔名詞〕に光る〔名詞〕」 / "I want to ___" / "〔名詞〕를 좋아해".
+   */
+  pattern: string
+  /**
+   * zh-TW: what the pattern means and when to use it.
+   */
+  explanation: string
+  /**
+   * @minItems 1
+   * @maxItems 4
+   */
+  examples:
+    | [PatternExample]
+    | [PatternExample, PatternExample]
+    | [PatternExample, PatternExample, PatternExample]
+    | [PatternExample, PatternExample, PatternExample, PatternExample]
+}
+export interface PatternExample {
+  /**
+   * New sentence in the song's language built from the pattern.
+   */
+  text: string
+  /**
+   * zh-TW translation.
+   */
+  translation: string
+  /**
+   * What was substituted, e.g. 「星 → 月」.
+   */
+  swap?: string
+  /**
+   * ja: whole sentence in hiragana. ko: pronounced Hangul. en: omitted.
+   */
+  reading?: string
+  /**
+   * ja: Hepburn. ko: Revised Romanization. en: omitted.
+   */
+  romanization?: string
 }

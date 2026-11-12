@@ -217,6 +217,11 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             isLast={lessonIdx === segments.length - 1}
             autoMode={autoMode}
             countdown={autoActive ? countdown : null}
+            lang={lang}
+            onSpeakText={(text) => {
+              stopSpeech()
+              void speak(text, lang, 0.9)
+            }}
             speaking={speaking}
             canSpeak={canSpeak}
             onSpeakWords={speakWords}

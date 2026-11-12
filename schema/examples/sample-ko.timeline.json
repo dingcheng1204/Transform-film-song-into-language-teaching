@@ -80,7 +80,36 @@
           "갈까 在句尾拉長，拉的是 까 的母音 a。",
           "兩句之間在 갈까 後面換氣。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "같이 〔動詞〕-ㄹ까?",
+            "explanation": "提議「要不要一起……？」，對朋友說的半語。",
+            "examples": [
+              {
+                "text": "같이 먹을까?",
+                "translation": "要一起吃嗎？",
+                "swap": "걸어가다 → 먹다",
+                "reading": "가치 머글까?",
+                "romanization": "gachi meogeulkka"
+              },
+              {
+                "text": "같이 갈까?",
+                "translation": "要一起去嗎？",
+                "swap": "걸어가다 → 가다",
+                "reading": "가치 갈까?",
+                "romanization": "gachi galkka"
+              },
+              {
+                "text": "같이 볼까?",
+                "translation": "要一起看嗎？",
+                "swap": "걸어가다 → 보다",
+                "reading": "가치 볼까?",
+                "romanization": "gachi bolkka"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -126,7 +155,36 @@
         "singingTips": [
           "좋아해 的 해 常拉長，尾音放輕，不要加重。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "〔名詞〕를/을 좋아해",
+            "explanation": "喜歡某人或某物；名詞有收尾音用 을，沒有用 를。",
+            "examples": [
+              {
+                "text": "음악을 좋아해",
+                "translation": "我喜歡音樂",
+                "swap": "너 → 음악",
+                "reading": "으마글 조아해",
+                "romanization": "eumageul joahae"
+              },
+              {
+                "text": "커피를 좋아해",
+                "translation": "我喜歡咖啡",
+                "swap": "너 → 커피",
+                "reading": "커피를 조아해",
+                "romanization": "keopireul joahae"
+              },
+              {
+                "text": "여름을 좋아해",
+                "translation": "我喜歡夏天",
+                "swap": "너 → 여름",
+                "reading": "여르믈 조아해",
+                "romanization": "yeoreumeul joahae"
+              }
+            ]
+          }
+        ]
       }
     }
   ]

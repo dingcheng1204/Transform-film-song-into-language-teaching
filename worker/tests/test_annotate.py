@@ -119,6 +119,10 @@ def test_japanese_readings_with_pykakasi():
     t = add_readings(bare("ja"))
     w = t.segments[0].lines[0].words[2]
     assert (w.text, w.reading, w.romanization) == ("光る", "ひかる", "hikaru")
+    wo = t.segments[0].lines[1].words[3]
+    assert (wo.text, wo.romanization) == ("を", "o")
+    he = t.segments[1].lines[0].words[1]
+    assert (he.text, he.romanization) == ("へ", "e")
 
 
 def test_korean_readings():
@@ -152,3 +156,88 @@ def test_mismatched_word_meanings_are_ignored():
     llm = FakeLLM([{"pronunciationNotes": ["n"], "wordMeanings": [["only one"]]}])
     lesson, meanings = lesson_for_segment(t, 0, llm)
     assert lesson.pronunciationNotes == ["n"] and meanings is None
+
+
+def test_patterns_parsed_with_local_readings():
+    pytest.importorskip("pykakasi")
+    t = bare("ja")
+    llm = FakeLLM(
+        [
+            {
+                "pronunciationNotes": [],
+                "wordMeanings": [
+                    ["夜空", "在", "閃耀的", "星星"],
+                    ["你", "的", "名字", "（受詞）", "呼喚"],
+                ],
+                "patterns": [
+                    {
+                        "pattern": "〔名詞〕を呼ぶ",
+                        "explanation": "呼喚某人或某物。",
+                        "examples": [
+                            {"text": "猫を呼ぶ", "translation": "叫貓", "swap": "名前 → 猫"},
+                            {"text": "", "translation": "空的會被略過"},
+                            {"text": "友達を呼ぶ", "translation": "叫朋友"},
+                            {"text": "先生を呼ぶ", "translation": "叫老師"},
+                            {"text": "母を呼ぶ", "translation": "第四句會被截掉"},
+                        ],
+                    },
+                    {
+                        "pattern": "第二個句型會被截掉",
+                        "explanation": "",
+                        "examples": [{"text": "x", "translation": "y"}],
+                    },
+                ],
+            }
+        ]
+    )
+    lesson, _ = lesson_for_segment(t, 0, llm)
+    assert len(lesson.patterns) == 1
+    p = lesson.patterns[0]
+    assert p.pattern == "〔名詞〕を呼ぶ"
+    assert [e.text for e in p.examples] == ["猫を呼ぶ", "友達を呼ぶ", "先生を呼ぶ"]
+    assert p.examples[0].reading == "ねこをよぶ"
+    assert p.examples[0].romanization == "neko o yobu"
+    assert p.examples[0].swap == "名前 → 猫"
+    assert p.examples[1].swap is None
+    assert "〔名詞〕" in llm.calls[0][0]  # prompt asks for slot notation
+
+
+def test_korean_pattern_example_reading():
+    pytest.importorskip("korean_romanizer")
+    t = bare("ko")
+    llm = FakeLLM(
+        [
+            {
+                "patterns": [
+                    {
+                        "pattern": "〔名詞〕를 좋아해",
+                        "explanation": "喜歡某人或某物（半語）。",
+                        "examples": [{"text": "음악을 좋아해", "translation": "我喜歡音樂"}],
+                    }
+                ]
+            }
+        ]
+    )
+    lesson, _ = lesson_for_segment(t, 1, llm)
+    ex = lesson.patterns[0].examples[0]
+    assert (ex.reading, ex.romanization) == ("으마글 조아해", "eumageul joahae")
+
+
+def test_malformed_patterns_are_dropped():
+    t = bare("en")
+    llm = FakeLLM([{"patterns": [{"pattern": "", "examples": []}, "nope"]}])
+    lesson, _ = lesson_for_segment(t, 0, llm)
+    assert lesson.patterns == []
+
+
+def test_retry_when_word_meanings_do_not_line_up():
+    t = bare("en")
+    t.segments = t.segments[:1]
+    good = {"pronunciationNotes": ["second"], "wordMeanings": [["a"] * 6, ["b"] * 7]}
+    llm = FakeLLM([{"pronunciationNotes": ["first"], "wordMeanings": [["x"]]}, good])
+    from song_worker.annotate import add_lessons
+
+    add_lessons(t, llm, lambda s, p: None, workers=1)
+    assert len(llm.calls) == 2
+    assert t.segments[0].lesson.pronunciationNotes == ["second"]
+    assert t.segments[0].lines[1].words[0].meaning == "b"

@@ -8,8 +8,8 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
 from song_worker.llm import ChatModel, LLMError
-from song_worker.readings import Annotator, add_readings
-from song_worker.timeline import Lesson, Segment, Timeline
+from song_worker.readings import Annotator, add_readings, sentence_reading
+from song_worker.timeline import Lesson, Pattern, PatternExample, Segment, Timeline
 
 log = logging.getLogger("song_worker")
 Report = Callable[[str, int], None]
@@ -30,7 +30,9 @@ LESSON_SYSTEM = """你是台灣學習者的{lang_name}老師。學習者透過�
 
 只輸出 JSON：
 {{"wordMeanings": [[...], ...], "grammarNotes": [...], "pronunciationNotes": [...],
-  "connectedSpeech": [...], "singingTips": [...]}}
+  "connectedSpeech": [...], "singingTips": [...],
+  "patterns": [{{"pattern": "...", "explanation": "...",
+                 "examples": [{{"text": "...", "translation": "...", "swap": "..."}}]}}]}}
 
 - wordMeanings：每一句一個陣列，長度和該句 words 完全相同、順序相同；每個元素是該字在這句裡的
   簡短中文意思（2–8 個字）。助詞、語尾等功能詞用括號說明作用，例如「（受詞助詞）」「（過去式）」。
@@ -40,6 +42,10 @@ LESSON_SYSTEM = """你是台灣學習者的{lang_name}老師。學習者透過�
 - connectedSpeech（最多 3 條）：連音與音變。{connected_focus}
 - singingTips（最多 2 條）：拉長音（演唱秒數特別長的字）、換氣點、一個音上塞好幾個字、節奏。
 - 每條一句話，一定要引用這段裡實際出現的字詞；用到音標要附上白話或注音類比。
+- patterns（0–1 個）：從這段挑一個最能帶走、日常也用得到的句型，用〔名詞〕〔動詞〕這類括號標出
+  可替換的位置，explanation 用一兩句中文說明意思和使用時機。examples 給 3 句：每句只換掉 1–2 個字，
+  換成日常生活常用、簡單的單字，句子要自然、文法正確、符合{lang_name}母語者的說法；
+  translation 是繁體中文翻譯，swap 寫出換了什麼（例如「星 → 月」）。這段沒有適合的句型就給空陣列。
 - 不要寫「多練習」之類的空話；沒有值得說的就給空陣列。"""
 
 FOCUS = {
@@ -123,6 +129,40 @@ def _segment_payload(timeline: Timeline, idx: int) -> str:
     )
 
 
+def _parse_patterns(raw: object, lang: str) -> list[Pattern]:
+    """Keep well-formed patterns (max 1, max 3 examples) and add example readings locally."""
+    out: list[Pattern] = []
+    if not isinstance(raw, list):
+        return out
+    for item in raw[:1]:
+        if not isinstance(item, dict) or not str(item.get("pattern", "")).strip():
+            continue
+        examples = []
+        for ex in item.get("examples", []) if isinstance(item.get("examples"), list) else []:
+            if not isinstance(ex, dict) or not str(ex.get("text", "")).strip():
+                continue
+            text = str(ex["text"]).strip()
+            reading, roman = sentence_reading(text, lang)
+            examples.append(
+                PatternExample(
+                    text=text,
+                    translation=str(ex.get("translation", "")).strip(),
+                    swap=str(ex.get("swap", "")).strip() or None,
+                    reading=reading,
+                    romanization=roman,
+                )
+            )
+        if examples:
+            out.append(
+                Pattern(
+                    pattern=str(item["pattern"]).strip(),
+                    explanation=str(item.get("explanation", "")).strip(),
+                    examples=examples[:3],
+                )
+            )
+    return out
+
+
 def lesson_for_segment(
     timeline: Timeline, idx: int, llm: ChatModel
 ) -> tuple[Lesson, list[list[str]] | None]:
@@ -142,6 +182,7 @@ def lesson_for_segment(
         k: [str(x).strip() for x in data.get(k, []) if str(x).strip()][:limit]
         for k, limit in LIMITS.items()
     }
+    clean["patterns"] = _parse_patterns(data.get("patterns"), lang)
     lines = timeline.segments[idx].lines
     meanings = data.get("wordMeanings")
     ok = (
@@ -167,6 +208,10 @@ def add_lessons(timeline: Timeline, llm: ChatModel, report: Report, workers: int
         seg: Segment = timeline.segments[idx]
         try:
             lesson, meanings = lesson_for_segment(timeline, idx, llm)
+            if meanings is None:  # word meanings didn't line up: one more try
+                retry, retry_meanings = lesson_for_segment(timeline, idx, llm)
+                if retry_meanings is not None:
+                    lesson, meanings = retry, retry_meanings
             lesson.ttsUrl, lesson.ttsRate = seg.lesson.ttsUrl, seg.lesson.ttsRate  # keep P4 fields
             seg.lesson = lesson
             if meanings:

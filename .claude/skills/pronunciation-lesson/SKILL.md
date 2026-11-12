@@ -21,6 +21,11 @@ Taiwanese learners singing Japanese, English or Korean songs. All explanations i
 
 Each item is one short sentence that quotes the exact words from the segment. No generic advice ("多練習").
 
+## Sentence patterns (P4)
+The same call returns `patterns` (0–1): the most reusable pattern in the segment with slots in 〔名詞〕〔動詞〕 notation, a 1–2 sentence zh-TW explanation, and 3 examples that each swap 1–2 words for everyday vocabulary (natural, grammatical, native-sounding), with zh-TW `translation` and `swap` (e.g. 「星 → 月」). Example `reading` / `romanization` are computed locally (`readings.sentence_reading`), never by the LLM. Malformed patterns are dropped; extras are trimmed (1 pattern, 3 examples).
+
+Web: `PatternDrill` in the lesson card — 聽著跟念 (listen and repeat) and 看中文說說看 (see the Chinese + swap hint, say it, then reveal and hear it).
+
 The same LLM call also returns `wordMeanings`: one array per line, same length/order as its words, each a 2–8 character zh-TW gloss (function words in parentheses, e.g. 「（受詞助詞）」). Stored in `Word.meaning`; arrays that don't line up are dropped.
 
 ## Generation (LLM — MiniMax by default; `worker/src/song_worker/annotate.py`)

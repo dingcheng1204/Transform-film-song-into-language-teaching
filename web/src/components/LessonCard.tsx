@@ -1,7 +1,10 @@
-import type { Segment } from '../types/timeline'
+import type { Segment, Song } from '../types/timeline'
+import PatternDrill from './PatternDrill'
 
 interface Props {
   segment: Segment
+  lang: Song['sourceLang']
+  onSpeakText: (text: string) => void
   isLast: boolean
   autoMode: boolean
   countdown: number | null
@@ -25,6 +28,8 @@ const SECTIONS = [
 // Shown while the video is paused at the end of a segment.
 export default function LessonCard({
   segment,
+  lang,
+  onSpeakText,
   isLast,
   autoMode,
   countdown,
@@ -80,6 +85,14 @@ export default function LessonCard({
           </div>
         ))}
       </div>
+
+      <PatternDrill
+        key={segment.id}
+        patterns={lesson.patterns ?? []}
+        lang={lang}
+        canSpeak={canSpeak}
+        onSpeak={onSpeakText}
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
         <button

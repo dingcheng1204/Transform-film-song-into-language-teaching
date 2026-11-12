@@ -119,7 +119,36 @@
           "星 和 呼ぶ 在句尾拉長，拉的是最後的母音 i 和 u。",
           "兩句之間在 星 後面換氣。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "〔名詞〕を呼ぶ",
+            "explanation": "呼喚、叫某人或某物；を 標出動作的對象。",
+            "examples": [
+              {
+                "text": "猫を呼ぶ",
+                "translation": "叫貓",
+                "swap": "名前 → 猫",
+                "reading": "ねこをよぶ",
+                "romanization": "neko o yobu"
+              },
+              {
+                "text": "友達を呼ぶ",
+                "translation": "叫朋友過來",
+                "swap": "名前 → 友達",
+                "reading": "ともだちをよぶ",
+                "romanization": "tomodachi o yobu"
+              },
+              {
+                "text": "タクシーを呼ぶ",
+                "translation": "叫計程車",
+                "swap": "名前 → タクシー",
+                "reading": "たくしーをよぶ",
+                "romanization": "takushii o yobu"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -173,7 +202,36 @@
         "singingTips": [
           "行こう 的長音常被拉成好幾個音，保持 o 的嘴形不要變成 u。"
         ],
-        "ttsRate": 0.75
+        "ttsRate": 0.75,
+        "patterns": [
+          {
+            "pattern": "〔名詞〕へ行こう",
+            "explanation": "〔動詞意志形〕表示「一起去……吧」的邀約。",
+            "examples": [
+              {
+                "text": "海へ行こう",
+                "translation": "去海邊吧",
+                "swap": "明日 → 海",
+                "reading": "うみへいこう",
+                "romanization": "umi e iko u"
+              },
+              {
+                "text": "学校へ行こう",
+                "translation": "去學校吧",
+                "swap": "明日 → 学校",
+                "reading": "がっこうへいこう",
+                "romanization": "gakkou e iko u"
+              },
+              {
+                "text": "東京へ行こう",
+                "translation": "去東京吧",
+                "swap": "明日 → 東京",
+                "reading": "とうきょうへいこう",
+                "romanization": "toukyou e iko u"
+              }
+            ]
+          }
+        ]
       }
     }
   ]
