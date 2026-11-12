@@ -38,8 +38,8 @@ export default function ClipPlayer({ youtubeId, start, end, label = '聽原唱' 
   function play() {
     const p = playerRef.current
     if (!p) return
-    // Muted 0.5 s lead-in so the first word isn't lost while audio starts after the seek.
-    const from = Math.max(0, start - 0.5)
+    // Muted 1.5 s lead-in so the first word isn't lost while audio starts after the seek.
+    const from = Math.max(0, start - 1.5)
     if (from < start && p.mute && p.isMuted && !p.isMuted()) {
       p.mute()
       mutedLeadIn.current = true

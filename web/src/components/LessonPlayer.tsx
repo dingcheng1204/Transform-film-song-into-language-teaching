@@ -15,7 +15,7 @@ import WordDetail from './WordDetail'
 
 const POLL_MS = 50
 /** Replays start this much earlier, muted, so audio is flowing when the segment begins. */
-const PREROLL_SEC = 0.5
+const PREROLL_SEC = 1.5
 const AUTO_SECONDS = 5
 
 type Mode = 'watch' | 'lesson' | 'done'
