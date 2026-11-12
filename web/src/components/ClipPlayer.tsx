@@ -13,12 +13,19 @@ export default function ClipPlayer({ youtubeId, start, end, label = '聽原唱' 
   const { containerRef, playerRef, ready, state } = useYouTubePlayer(youtubeId)
   const [playing, setPlaying] = useState(false)
   const timer = useRef<number | null>(null)
+  const mutedLeadIn = useRef(false)
 
   useEffect(() => {
     if (!playing || state !== PlayerState.PLAYING) return
     timer.current = window.setInterval(() => {
       const p = playerRef.current
-      if (p && p.getCurrentTime() >= end) {
+      if (!p) return
+      const now = p.getCurrentTime()
+      if (mutedLeadIn.current && now >= start - 0.05) {
+        p.unMute?.()
+        mutedLeadIn.current = false
+      }
+      if (now >= end) {
         p.pauseVideo()
         setPlaying(false)
       }
@@ -26,12 +33,18 @@ export default function ClipPlayer({ youtubeId, start, end, label = '聽原唱' 
     return () => {
       if (timer.current) window.clearInterval(timer.current)
     }
-  }, [playing, state, end, playerRef])
+  }, [playing, state, start, end, playerRef])
 
   function play() {
     const p = playerRef.current
     if (!p) return
-    p.seekTo(Math.max(0, start - 0.1), true)
+    // Muted 0.5 s lead-in so the first word isn't lost while audio starts after the seek.
+    const from = Math.max(0, start - 0.5)
+    if (from < start && p.mute && p.isMuted && !p.isMuted()) {
+      p.mute()
+      mutedLeadIn.current = true
+    }
+    p.seekTo(from, true)
     p.playVideo()
     setPlaying(true)
   }

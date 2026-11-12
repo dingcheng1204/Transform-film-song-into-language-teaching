@@ -14,6 +14,8 @@ import PracticePanel, { type Practice } from './PracticePanel'
 import WordDetail from './WordDetail'
 
 const POLL_MS = 50
+/** Replays start this much earlier, muted, so audio is flowing when the segment begins. */
+const PREROLL_SEC = 0.5
 const AUTO_SECONDS = 5
 
 type Mode = 'watch' | 'lesson' | 'done'
@@ -40,8 +42,10 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
     // Paused mid-segment (Space or the iframe's own button): study the segment being played.
     if (s === PlayerState.PAUSED && modeRef.current === 'watch') {
       const now = playerRef.current?.getCurrentTime() ?? 0
+      const pr = preroll.current
+      endPreroll()
       setT(now)
-      openLesson(currentIndex(segments, now))
+      openLesson(pr ? pr.idx : currentIndex(segments, now))
     }
     if (s === PlayerState.ENDED) setMode('done')
   })
@@ -53,6 +57,17 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const lastPaused = useRef(-1)
   const prevT = useRef(0)
   const lessonIdxRef = useRef(0)
+
+  // Muted lead-in before a replayed segment (see PREROLL_SEC).
+  const preroll = useRef<{ until: number; idx: number; muted: boolean } | null>(null)
+  const [prerollIdx, setPrerollIdx] = useState<number | null>(null)
+  function endPreroll() {
+    const pr = preroll.current
+    if (!pr) return
+    if (pr.muted) playerRef.current?.unMute?.()
+    preroll.current = null
+    setPrerollIdx(null)
+  }
 
   /** Switch to the (unlocked) lesson card for segment `idx`. */
   function openLesson(idx: number) {
@@ -129,6 +144,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       const p = playerRef.current
       if (!p) return
       const now = p.getCurrentTime()
+      if (preroll.current && now >= preroll.current.until - 0.05) endPreroll()
       const r = tick(segments, now, prevT.current, lastPaused.current)
       lastPaused.current = r.lastPaused
       prevT.current = now
@@ -164,12 +180,27 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       const p = playerRef.current
       if (!p) return
       const start = segments[i].start
+      // Start a little earlier and muted: right after a seek YouTube's audio takes a moment
+      // to come out, which would otherwise swallow the first word.
+      const from = Math.max(0, start - PREROLL_SEC)
+      endPreroll()
+      let muted = false
+      if (from < start && p.mute && p.isMuted && !p.isMuted()) {
+        p.mute()
+        muted = true
+      }
+      if (from < start) {
+        preroll.current = { until: start, idx: i, muted }
+        setPrerollIdx(i)
+      }
       lastPaused.current = i - 1
-      prevT.current = start
-      setT(start)
-      p.seekTo(start, true)
+      prevT.current = from
+      setT(from)
+      p.seekTo(from, true)
       play({ keepPractice: i === lessonIdxRef.current })
     },
+    // endPreroll only touches refs and state setters
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [segments, playerRef, play],
   )
 
@@ -188,7 +219,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
     return () => window.clearInterval(id)
   }, [autoActive, lessonIdx, play])
 
-  const shownIdx = mode === 'lesson' ? lessonIdx : currentIndex(segments, t)
+  const shownIdx = mode === 'lesson' ? lessonIdx : (prerollIdx ?? currentIndex(segments, t))
   const shown = segments[shownIdx]
   const hideLyrics = practice === 'dictation' && !dictResults
 
