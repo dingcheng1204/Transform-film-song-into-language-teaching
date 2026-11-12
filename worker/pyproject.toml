@@ -35,8 +35,14 @@ dev = [
     "datamodel-code-generator>=0.26",
 ]
 
+[tool.uv]
+# The worker runs on Linux x86_64 only (dev machine: Ubuntu, CI: ubuntu-latest, cloud: Linux).
+# Without this, uv also resolves for Intel macOS, where demucs pins torch<2.3 and conflicts
+# with whisperx's torch~=2.8.
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
 [tool.uv.sources]
-torch = { index = "pytorch-cpu" }
+torch ={ index = "pytorch-cpu" }
 torchaudio = { index = "pytorch-cpu" }
 torchvision = { index = "pytorch-cpu" }
 
