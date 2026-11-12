@@ -368,6 +368,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             onSpeakSlow={speakSlow}
             onStopSpeaking={stopSpeech}
             onReplay={() => replay(shownIdx)}
+            onStop={() => playerRef.current?.pauseVideo()}
             onContinue={() => play()}
             onToggleAuto={() => {
               setCountdown(AUTO_SECONDS)
