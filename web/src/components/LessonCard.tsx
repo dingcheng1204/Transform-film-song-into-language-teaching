@@ -4,6 +4,8 @@ import PatternDrill from './PatternDrill'
 
 interface Props {
   segment: Segment
+  /** While the segment replays: card stays visible, every control disabled. */
+  locked?: boolean
   lang: Song['sourceLang']
   onSpeakText: (text: string) => void
   /** One entry per line; undefined = saving unavailable */
@@ -34,6 +36,7 @@ const SECTIONS = [
 // Shown while the video is paused at the end of a segment.
 export default function LessonCard({
   segment,
+  locked = false,
   lang,
   onSpeakText,
   savedLines,
@@ -54,7 +57,18 @@ export default function LessonCard({
   const { lesson } = segment
   const filled = SECTIONS.filter(({ key }) => (lesson[key] ?? []).length > 0)
   return (
-    <section aria-label="這段的教學" className="rounded-lg border border-rule bg-sheet p-5 sm:p-6">
+    <section
+      aria-label="這段的教學"
+      aria-busy={locked}
+      className={`rounded-lg border border-rule bg-sheet p-5 transition-opacity sm:p-6 ${locked ? 'opacity-60' : ''}`}
+    >
+      {locked && (
+        <p className="mb-3 text-sm font-medium text-ink" role="status">
+          重播中…播完這段會自動停下
+        </p>
+      )}
+      {/* A disabled fieldset disables every button, input and textarea inside it. */}
+      <fieldset disabled={locked} className="m-0 min-w-0 border-0 p-0 disabled:[&_button]:cursor-not-allowed">
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -75,7 +89,7 @@ export default function LessonCard({
         <button
           type="button"
           onClick={onReplay}
-          className="rounded-md border border-ink px-4 py-2 font-medium hover:bg-paper"
+          className="rounded-md border border-ink px-4 py-2 font-medium hover:bg-paper disabled:opacity-50"
         >
           重播這段
         </button>
@@ -94,7 +108,7 @@ export default function LessonCard({
               type="button"
               onClick={() => onToggleSaveLine(i)}
               aria-pressed={savedLines[i]}
-              className={`max-w-full truncate rounded-md border px-3 py-1 text-sm ${
+              className={`max-w-full truncate rounded-md border px-3 py-1 text-sm disabled:opacity-50 ${
                 savedLines[i] ? 'border-ink bg-ink text-white' : 'border-rule hover:border-ink'
               }`}
             >
@@ -135,14 +149,14 @@ export default function LessonCard({
         <button
           type="button"
           onClick={onReplay}
-          className="rounded-md border border-ink px-4 py-2 font-medium hover:bg-paper"
+          className="rounded-md border border-ink px-4 py-2 font-medium hover:bg-paper disabled:opacity-50"
         >
           重播這段 <kbd className="ml-1 text-xs text-muted">R</kbd>
         </button>
         <button
           type="button"
           onClick={onContinue}
-          className="rounded-md bg-ink px-4 py-2 font-medium text-white hover:bg-ink-soft"
+          className="rounded-md bg-ink px-4 py-2 font-medium text-white hover:bg-ink-soft disabled:opacity-50"
         >
           {isLast ? '播完剩下的部分' : '繼續下一段'}{' '}
           <kbd className="ml-1 text-xs text-white/70">Space</kbd>
@@ -153,6 +167,7 @@ export default function LessonCard({
           {countdown !== null && <span className="tabular-nums text-muted">（{countdown} 秒）</span>}
         </label>
       </div>
+      </fieldset>
     </section>
   )
 }

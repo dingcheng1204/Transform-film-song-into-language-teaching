@@ -23,10 +23,25 @@ type WordRef = { line: number; word: number }
 export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const { song, segments } = timeline
   const [mode, setMode] = useState<Mode>('watch')
+  // Replaying the current segment from the lesson card keeps the card on screen (locked).
+  const [replaying, setReplaying] = useState(false)
+  const replayingRef = useRef(false)
+  const setReplay = (v: boolean) => {
+    replayingRef.current = v
+    setReplaying(v)
+  }
   // Pressing play inside the iframe during a lesson just resumes watching.
   const { containerRef, playerRef, ready, state, error } = useYouTubePlayer(song.youtubeId, (s) => {
     if (s === PlayerState.PLAYING) setMode((m) => (m === 'lesson' ? 'watch' : m))
-    if (s === PlayerState.ENDED) setMode('done')
+    if (s === PlayerState.PAUSED && replayingRef.current) {
+      // Paused mid-replay (e.g. Space or the iframe's pause button): back to the unlocked card.
+      setReplay(false)
+      setMode((m) => (m === 'watch' ? 'lesson' : m))
+    }
+    if (s === PlayerState.ENDED) {
+      setReplay(false)
+      setMode('done')
+    }
   })
 
   const [lessonIdx, setLessonIdx] = useState(0)
@@ -111,6 +126,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
           setDictResults(null)
         }
         lessonIdxRef.current = r.pauseIdx
+        setReplay(false)
         setLessonIdx(r.pauseIdx)
         setCountdown(AUTO_SECONDS)
         setMode('lesson')
@@ -122,6 +138,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const play = useCallback(() => {
     stopSpeech()
     setSelected(null)
+    setReplay(false)
     setMode('watch')
     playerRef.current?.playVideo()
   }, [playerRef, stopSpeech])
@@ -135,9 +152,12 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       prevT.current = start
       setT(start)
       p.seekTo(start, true)
+      // Same segment as the open lesson card → keep the card visible but locked while it plays.
+      const keepCard = mode === 'lesson' && i === lessonIdxRef.current
       play()
+      if (keepCard) setReplay(true)
     },
-    [segments, playerRef, play],
+    [segments, playerRef, play, mode],
   )
 
   // Auto-continue countdown (paused while the learner is studying words).
@@ -309,8 +329,9 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
           />
         )}
 
-        {mode === 'lesson' && (
+        {(mode === 'lesson' || replaying) && (
           <LessonCard
+            locked={replaying}
             segment={segments[lessonIdx]}
             isLast={lessonIdx === segments.length - 1}
             autoMode={autoMode}
