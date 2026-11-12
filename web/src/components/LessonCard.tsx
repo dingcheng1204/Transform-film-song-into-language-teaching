@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Segment, Song } from '../types/timeline'
 import PatternDrill from './PatternDrill'
 
@@ -5,6 +6,9 @@ interface Props {
   segment: Segment
   lang: Song['sourceLang']
   onSpeakText: (text: string) => void
+  /** One entry per line; undefined = saving unavailable */
+  savedLines?: boolean[]
+  onToggleSaveLine?: (lineIndex: number) => void
   isLast: boolean
   autoMode: boolean
   countdown: number | null
@@ -16,6 +20,8 @@ interface Props {
   onSpeakWords: () => void
   onSpeakSlow: () => void
   onStopSpeaking: () => void
+  /** Extra practice sections (dictation / shadowing). */
+  children?: ReactNode
 }
 
 const SECTIONS = [
@@ -30,6 +36,8 @@ export default function LessonCard({
   segment,
   lang,
   onSpeakText,
+  savedLines,
+  onToggleSaveLine,
   isLast,
   autoMode,
   countdown,
@@ -41,6 +49,7 @@ export default function LessonCard({
   onSpeakWords,
   onSpeakSlow,
   onStopSpeaking,
+  children,
 }: Props) {
   const { lesson } = segment
   const filled = SECTIONS.filter(({ key }) => (lesson[key] ?? []).length > 0)
@@ -63,12 +72,38 @@ export default function LessonCard({
         >
           {speaking === 'slow' ? '停止' : '整句慢慢念'}
         </button>
+        <button
+          type="button"
+          onClick={onReplay}
+          className="rounded-md border border-ink px-4 py-2 font-medium hover:bg-paper"
+        >
+          重播這段
+        </button>
         <span className="text-sm text-muted">
           {canSpeak
             ? '也可以點上面的任何一個字，聽它怎麼念、看中文意思。'
             : '這台裝置沒有這個語言的朗讀語音，可以到系統設定安裝。'}
         </span>
       </div>
+
+      {onToggleSaveLine && savedLines && (
+        <div className="mb-5 flex flex-wrap gap-2">
+          {segment.lines.map((line, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onToggleSaveLine(i)}
+              aria-pressed={savedLines[i]}
+              className={`max-w-full truncate rounded-md border px-3 py-1 text-sm ${
+                savedLines[i] ? 'border-ink bg-ink text-white' : 'border-rule hover:border-ink'
+              }`}
+            >
+              {savedLines[i] ? '已收藏：' : '收藏這句：'}
+              <span lang={lang}>{line.text}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {filled.length === 0 && (
         <p className="text-sm text-muted">這段沒有特別需要注意的地方，重播幾次跟著唱看看。</p>
@@ -93,6 +128,8 @@ export default function LessonCard({
         canSpeak={canSpeak}
         onSpeak={onSpeakText}
       />
+
+      {children}
 
       <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
         <button

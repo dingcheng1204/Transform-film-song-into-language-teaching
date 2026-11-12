@@ -5,10 +5,13 @@ interface Props {
   lang: Song['sourceLang']
   onSpeak: () => void
   onClose: () => void
+  /** undefined = saving unavailable (auth not configured) */
+  saved?: boolean
+  onToggleSave?: () => void
 }
 
 // Details for the tapped word: reading, romanization, meaning, and replay.
-export default function WordDetail({ word, lang, onSpeak, onClose }: Props) {
+export default function WordDetail({ word, lang, onSpeak, onClose, saved, onToggleSave }: Props) {
   const reading = word.reading && word.reading !== word.text ? word.reading : null
   return (
     <div
@@ -30,6 +33,16 @@ export default function WordDetail({ word, lang, onSpeak, onClose }: Props) {
         {word.meaning ?? <span className="text-muted">（還沒有中文解釋）</span>}
       </span>
       <span className="ml-auto flex gap-2">
+        {onToggleSave && (
+          <button
+            type="button"
+            onClick={onToggleSave}
+            aria-pressed={saved}
+            className={`rounded-md border border-ink px-3 py-1 text-sm ${saved ? 'bg-ink text-white' : 'hover:bg-paper'}`}
+          >
+            {saved ? '已收藏' : '收藏'}
+          </button>
+        )}
         <button type="button" onClick={onSpeak} className="rounded-md border border-ink px-3 py-1 text-sm hover:bg-paper">
           再念一次
         </button>

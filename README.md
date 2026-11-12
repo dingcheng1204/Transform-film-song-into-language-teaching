@@ -55,7 +55,7 @@ understand each line, hear and repeat each word, pick up reusable vocabulary and
 | `p2-align` | Worker: audio → vocals → word timestamps → Supabase |
 | `p3-lessons` | zh-TW translation; readings (ja furigana/romaji, ko pronounced Hangul + RR, en IPA); per-word zh meanings; grammar / pronunciation / connected-speech / singing notes (LLM: MiniMax, OpenAI-compatible); tap a word to hear it + see its meaning; read word by word / slowly (browser speech) |
 | `p4-patterns` | Sentence patterns from each line + substitution drills (swap words, hear and say new sentences) |
-| `p5-review` | Save words/lines, spaced-repetition review, shadowing and dictation from the song |
+| `p5-review` | Sign in (email link / Google, Supabase Auth); save words and lines; SM-2 spaced-repetition review page with the original clip; dictation (typed answer aligned word/char-wise, kana accepted for ja); shadowing (record yourself in the browser, compare with the original — never uploaded) |
 | `p6-voice` | Server TTS (more natural voices) and pitch contour for singing |
 | `p7-cloud` | (optional) Worker heavy stages on a cloud GPU |
 
@@ -64,6 +64,8 @@ understand each line, hear and repeat each word, pick up reusable vocabulary and
 Shares the `flight-price-notifier` project (free plan has 2 active projects).
 Everything lives in the `song_teaching` schema and the `song-tts` storage bucket; RLS on every table.
 After the first migration, `song_teaching` must be listed under Dashboard → Project Settings → Data API → Exposed schemas.
+Per-user tables (`saved_items`, `review_logs`) are accessed from the browser with the user's session; RLS limits every row to `auth.uid()`.
+Auth users are shared with flight-price-notifier (same project). Add `https://song-teaching.vercel.app/**` to Authentication → URL Configuration → Redirect URLs.
 The service-role key exists only in `worker/.env`, never in `web/` or Vercel.
 
 ## Copyright note

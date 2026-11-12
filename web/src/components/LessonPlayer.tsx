@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
+import { useAuth } from '../lib/auth'
+import { checkDictation, type DictationResult } from '../lib/dictation'
+import { useRecorder } from '../lib/recorder'
+import { savedKey, useSavedForSong, useToggleSaved, type NewSavedItem } from '../lib/savedApi'
 import { activeWordIndex, currentIndex, tick } from '../lib/segments'
 import { hasVoice, speak, speakSequence, spokenForm, stopSpeaking } from '../lib/speech'
 import { PlayerState, playerErrorMessage, useYouTubePlayer } from '../lib/useYouTubePlayer'
-import type { Timeline } from '../types/timeline'
+import type { Line, Segment, Timeline, Word } from '../types/timeline'
 import LessonCard from './LessonCard'
 import LyricLine from './LyricLine'
+import PracticePanel, { type Practice } from './PracticePanel'
 import WordDetail from './WordDetail'
 
 const POLL_MS = 50
@@ -29,6 +35,17 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   const [countdown, setCountdown] = useState<number | null>(null)
   const lastPaused = useRef(-1)
   const prevT = useRef(0)
+  const lessonIdxRef = useRef(0)
+
+  // Dictation / shadowing state lives here so it survives replaying the segment.
+  const [practice, setPractice] = useState<Practice>(null)
+  const [dictAnswer, setDictAnswer] = useState('')
+  const [dictResults, setDictResults] = useState<DictationResult[] | null>(null)
+  const recorder = useRecorder()
+  const compareTimer = useRef<number | null>(null)
+  useEffect(() => () => {
+    if (compareTimer.current) window.clearTimeout(compareTimer.current)
+  }, [])
 
   // Word study (lesson mode): tap a word, or let it read word by word / slowly.
   const lang = song.sourceLang
@@ -52,6 +69,21 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
     }
   }, [lang])
 
+  // Saving words/lines for review (requires sign-in).
+  const { user, available: canSave } = useAuth()
+  const saved = useSavedForSong(song.youtubeId, lang)
+  const toggleSaved = useToggleSaved()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isSaved = (item: NewSavedItem) => !!saved.data?.has(savedKey(item.kind, item.text))
+  function toggleSave(item: NewSavedItem) {
+    if (!user) {
+      navigate(`/login?next=${encodeURIComponent(location.pathname + location.search)}`)
+      return
+    }
+    toggleSaved.mutate({ item, savedId: saved.data?.get(savedKey(item.kind, item.text)) })
+  }
+
   const stopSpeech = useCallback(() => {
     cancelSpeech.current?.()
     cancelSpeech.current = null
@@ -73,6 +105,12 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       setT(now)
       if (r.pauseIdx !== null) {
         p.pauseVideo()
+        if (r.pauseIdx !== lessonIdxRef.current) {
+          // New segment: start its practice fresh.
+          setDictAnswer('')
+          setDictResults(null)
+        }
+        lessonIdxRef.current = r.pauseIdx
         setLessonIdx(r.pauseIdx)
         setCountdown(AUTO_SECONDS)
         setMode('lesson')
@@ -103,7 +141,7 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
   )
 
   // Auto-continue countdown (paused while the learner is studying words).
-  const autoActive = mode === 'lesson' && autoMode && !speaking && !selected
+  const autoActive = mode === 'lesson' && autoMode && !speaking && !selected && !practice
   useEffect(() => {
     if (!autoActive) return
     let left = AUTO_SECONDS
@@ -119,6 +157,13 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
 
   const shownIdx = mode === 'lesson' ? lessonIdx : currentIndex(segments, t)
   const shown = segments[shownIdx]
+  const hideLyrics = practice === 'dictation' && !dictResults && shownIdx === lessonIdx
+
+  const lessonSeg = segments[lessonIdx]
+  const segSeconds = lessonSeg.end - lessonSeg.start
+  function playMine() {
+    if (recorder.url) void new Audio(recorder.url).play()
+  }
 
   function onWordClick(line: number, word: number) {
     stopSpeech()
@@ -177,6 +222,52 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [mode, state, play, replay, shownIdx, playerRef])
 
+  const practicePanel = (
+    <PracticePanel
+      practice={practice}
+      onPractice={(pr) => {
+        stopSpeech()
+        setSelected(null)
+        setPractice(pr)
+      }}
+      lang={lang}
+      answer={dictAnswer}
+      onAnswer={setDictAnswer}
+      results={dictResults}
+      onCheck={() => {
+        const reading = (ln: Line) =>
+          lang === 'ja' && ln.words.some((w) => w.reading)
+            ? ln.words.map((w) => w.reading ?? w.text).join('')
+            : undefined
+        // Compare the whole answer against the segment's lines joined.
+        const text = lessonSeg.lines.map((ln) => ln.text).join(lang === 'ja' ? '' : ' ')
+        const read = lessonSeg.lines.every((ln) => reading(ln))
+          ? lessonSeg.lines.map((ln) => reading(ln)).join('')
+          : undefined
+        setDictResults([checkDictation({ text, reading: read }, dictAnswer, lang)])
+      }}
+      onRetry={() => {
+        setDictAnswer('')
+        setDictResults(null)
+      }}
+      recorder={recorder.state}
+      hasRecording={!!recorder.url}
+      onRecord={() => recorder.start((segSeconds + 1.5) * 1000)}
+      onRecordWithSong={() => {
+        void recorder.start((segSeconds + 1.5) * 1000)
+        replay(lessonIdx)
+      }}
+      onStopRecording={recorder.stop}
+      onPlayMine={playMine}
+      onCompare={() => {
+        replay(lessonIdx)
+        if (compareTimer.current) window.clearTimeout(compareTimer.current)
+        compareTimer.current = window.setTimeout(playMine, (segSeconds + 0.6) * 1000)
+      }}
+      onReplay={() => replay(lessonIdx)}
+    />
+  )
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
       <div className="space-y-6">
@@ -184,7 +275,8 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
         {error !== null && <p className="text-alert">{playerErrorMessage(error)}</p>}
 
         <div className="min-h-40 space-y-5" aria-live="polite">
-          {shown.lines.map((line, i) => (
+          {hideLyrics && <p className="pt-6 text-lg text-muted">聽寫中，歌詞先藏起來。</p>}
+          {!hideLyrics && shown.lines.map((line, i) => (
             <LyricLine
               key={`${shownIdx}-${i}`}
               line={line}
@@ -202,10 +294,16 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
           ))}
         </div>
 
-        {mode === 'lesson' && selected && shown.lines[selected.line]?.words[selected.word] && (
+        {mode === 'lesson' && !hideLyrics && selected && shown.lines[selected.line]?.words[selected.word] && (
           <WordDetail
             word={shown.lines[selected.line].words[selected.word]}
             lang={lang}
+            saved={canSave ? isSaved(wordItem(song.youtubeId, lang, shown, selected.line, selected.word)) : undefined}
+            onToggleSave={
+              canSave
+                ? () => toggleSave(wordItem(song.youtubeId, lang, shown, selected.line, selected.word))
+                : undefined
+            }
             onSpeak={() => onWordClick(selected.line, selected.word)}
             onClose={() => setSelected(null)}
           />
@@ -218,6 +316,14 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
             autoMode={autoMode}
             countdown={autoActive ? countdown : null}
             lang={lang}
+            savedLines={
+              canSave
+                ? segments[lessonIdx].lines.map((_, i) => isSaved(lineItem(song.youtubeId, lang, segments[lessonIdx], i)))
+                : undefined
+            }
+            onToggleSaveLine={
+              canSave ? (i) => toggleSave(lineItem(song.youtubeId, lang, segments[lessonIdx], i)) : undefined
+            }
             onSpeakText={(text) => {
               stopSpeech()
               void speak(text, lang, 0.9)
@@ -233,7 +339,9 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
               setCountdown(AUTO_SECONDS)
               setAutoMode((a) => !a)
             }}
-          />
+          >
+            {practicePanel}
+          </LessonCard>
         )}
         {mode === 'watch' && ready && state !== PlayerState.PLAYING && (
           <button
@@ -278,4 +386,46 @@ export default function LessonPlayer({ timeline }: { timeline: Timeline }) {
       </nav>
     </div>
   )
+}
+
+type SongLang = Timeline['song']['sourceLang']
+
+function joinField(words: Word[], field: 'reading' | 'romanization', lang: SongLang): string | null {
+  if (!words.some((w) => w[field])) return null
+  const sep = lang === 'ja' && field === 'reading' ? '' : ' '
+  return words.map((w) => w[field] ?? w.text).join(sep)
+}
+
+function lineItem(youtubeId: string, lang: SongLang, seg: Segment, i: number): NewSavedItem {
+  const line: Line = seg.lines[i]
+  return {
+    kind: 'line',
+    youtube_id: youtubeId,
+    source_lang: lang,
+    segment_id: seg.id,
+    text: line.text,
+    reading: lang === 'en' ? null : joinField(line.words, 'reading', lang),
+    romanization: joinField(line.words, 'romanization', lang),
+    meaning: line.translation || null,
+    start_sec: line.start,
+    end_sec: line.end,
+  }
+}
+
+function wordItem(youtubeId: string, lang: SongLang, seg: Segment, li: number, wi: number): NewSavedItem {
+  const line = seg.lines[li]
+  const w = line.words[wi]
+  return {
+    kind: 'word',
+    youtube_id: youtubeId,
+    source_lang: lang,
+    segment_id: seg.id,
+    text: w.text,
+    reading: w.reading ?? null,
+    romanization: w.romanization ?? null,
+    meaning: w.meaning ?? null,
+    context: line.text,
+    start_sec: line.start, // play the whole line for context
+    end_sec: line.end,
+  }
 }

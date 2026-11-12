@@ -24,3 +24,6 @@ worker/.cache/
 .DS_Store
 .idea/
 .vscode/
+
+# Local test output from `song-worker local` (contains lyrics — never commit)
+worker/*.timeline.json
